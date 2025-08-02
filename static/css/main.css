@@ -1,10 +1,10 @@
 /* Shared styles */
 :root {
-  --color-primario-oscuro: #275E62;
-  --color-primario-medio: #1F3637;
-  --color-acento: #20858C;
-  --color-claro-1: #BAFAFF;
-  --color-claro-2: #90F8FF;
+  --color-primario-oscuro: #74560f;
+  --color-primario-medio: #0d0636;
+  --color-acento: #142383;
+  --color-claro-1: #bae0ff;
+  --color-claro-2: #90c6ff;
 }
 
 body {
