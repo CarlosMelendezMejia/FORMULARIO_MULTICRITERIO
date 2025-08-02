@@ -306,17 +306,55 @@ h2::after {
   padding: 1rem;
 }
 
+/* Contenedor mejorado para el campo de contraseña */
 .password-container {
-  position: relative;
+    position: relative;
+    margin-bottom: 1.5rem;
 }
 
+/* Estilo para el botón del ojo */
 .toggle-password {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: var(--color-primario-medio);
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 8px;
+    color: var(--color-primario-medio);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    background-color: rgba(32, 133, 140, 0.1);
+    color: var(--color-acento);
+}
+
+.toggle-password:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.toggle-password i {
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+}
+
+/* Ajuste para el input de contraseña */
+#password {
+    padding-right: 45px; /* Más espacio para el ícono */
+    transition: all 0.3s;
+}
+
+#password:focus {
+    border-color: var(--color-acento);
+    box-shadow: 0 0 0 0.25rem rgba(32, 133, 140, 0.25);
 }
 
 .logo-container {
@@ -826,4 +864,57 @@ input[type="number"].ponderacion:focus {
   .actions-container .btn {
     width: 100%;
   }
+}
+
+/* Estilo para el grupo de entrada */
+.input-group {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Estilo para el botón de aplicar */
+.btn-acento {
+    background-color: var(--color-acento);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-acento:hover {
+    background-color: var(--color-primario-oscuro);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(32, 133, 140, 0.3);
+}
+
+.btn-acento:active {
+    transform: translateY(0);
+}
+
+/* Estilo para el input */
+#ponderacion_global {
+    border: 2px solid var(--color-claro-2);
+    padding: 10px 15px;
+    font-weight: 500;
+    text-align: center;
+}
+
+#ponderacion_global:focus {
+    border-color: var(--color-acento);
+    box-shadow: 0 0 0 0.25rem rgba(32, 133, 140, 0.25);
+    outline: none;
+}
+
+/* Estilo para el icono */
+.bi-arrow-repeat {
+    transition: transform 0.5s ease;
+}
+
+.btn-acento:hover .bi-arrow-repeat {
+    transform: rotate(360deg);
 }
