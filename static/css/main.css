@@ -705,6 +705,39 @@ h3::after {
   text-align: center;
 }
 
+/* Table header width helpers */
+.th-factores {
+  width: 25%;
+}
+
+.th-definicion {
+  width: 60%;
+}
+
+.th-ponderacion {
+  width: 15%;
+}
+
+.th-factor {
+  width: 15%;
+}
+
+.th-definicion-detalle {
+  width: 35%;
+}
+
+.th-valor-usuario {
+  width: 15%;
+}
+
+.th-ponderacion-admin {
+  width: 15%;
+}
+
+.th-valor-ponderado {
+  width: 20%;
+}
+
 .table td {
   vertical-align: middle;
 }
@@ -756,8 +789,15 @@ input[type="number"].ponderacion:focus {
 
 .valor-ponderado {
   font-weight: 600;
-  color: var(--color-primario-medio);
   min-width: 100px;
+}
+
+.texto-ponderado {
+  color: var(--color-primario-medio);
+}
+
+.texto-gris {
+  color: #6c757d;
 }
 
 .factor-name {
