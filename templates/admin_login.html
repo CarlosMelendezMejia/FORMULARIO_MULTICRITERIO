@@ -28,25 +28,22 @@
             {% endwith %}
 
             <form method="post">
-                <div class="mb-4 password-container">
+                <div class="mb-4">
                     <label for="password" class="form-label">Contraseña</label>
                     <input type="password" class="form-control" id="password" name="password" required>
-                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña">
-                        <i class="bi bi-eye-fill"></i>
-                    </button>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="showPassword">
+                        <label class="form-check-label" for="showPassword">Mostrar contraseña</label>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Mostrar/ocultar contraseña
-        document.getElementById('togglePassword').addEventListener('click', function () {
+        document.getElementById('showPassword').addEventListener('change', function () {
             const passwordInput = document.getElementById('password');
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.classList.toggle('bi-eye-fill');
-            this.classList.toggle('bi-eye-slash-fill');
+            passwordInput.type = this.checked ? 'text' : 'password';
         });
     </script>
 
