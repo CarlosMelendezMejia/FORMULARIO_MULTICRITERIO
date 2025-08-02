@@ -1,4 +1,4 @@
-/* Styles from templates/formulario.html */
+/* Shared styles */
 :root {
   --color-primario-oscuro: #275E62;
   --color-primario-medio: #1F3637;
@@ -12,6 +12,46 @@ body {
   min-height: 100vh;
 }
 
+h2 {
+  color: var(--color-primario-medio);
+  margin-bottom: 2rem;
+  font-weight: 600;
+  text-align: center;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background-color: var(--color-acento);
+}
+
+.btn-primary {
+  background-color: var(--color-acento);
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primario-oscuro);
+  transform: translateY(-2px);
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Styles from templates/formulario.html */
 .evaluation-card {
   background: white;
   border-radius: 15px;
@@ -46,16 +86,7 @@ body {
 }
 
 .btn-primary {
-  background-color: var(--color-acento);
-  border: none;
   padding: 12px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-primario-oscuro);
-  transform: translateY(-2px);
 }
 
 .form-control:focus, .form-select:focus {
@@ -68,33 +99,6 @@ body {
   border-color: #f5c6cb;
   color: #721c24;
   border-radius: 8px;
-}
-
-h2 {
-  color: var(--color-primario-medio);
-  margin-bottom: 2rem;
-  font-weight: 600;
-  text-align: center;
-  position: relative;
-  padding-bottom: 15px;
-}
-
-h2::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 3px;
-  background-color: var(--color-acento);
-}
-
-.logo-container {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
 }
 
 .logo-placeholder {
@@ -111,45 +115,12 @@ h2::after {
 }
 
 /* Styles from templates/admin.html */
-:root {
-  --color-primario-oscuro: #275E62;
-  --color-primario-medio: #1F3637;
-  --color-acento: #20858C;
-  --color-claro-1: #BAFAFF;
-  --color-claro-2: #90F8FF;
-}
-
-body {
-  background: linear-gradient(135deg, var(--color-claro-1), var(--color-claro-2));
-  min-height: 100vh;
-}
-
 .admin-container {
   background: white;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   padding: 2.5rem;
   margin: 2rem auto;
-}
-
-h2 {
-  color: var(--color-primario-medio);
-  margin-bottom: 2rem;
-  font-weight: 600;
-  text-align: center;
-  position: relative;
-  padding-bottom: 15px;
-}
-
-h2::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 3px;
-  background-color: var(--color-acento);
 }
 
 .table thead th {
@@ -161,18 +132,6 @@ h2::after {
 
 .table-hover tbody tr:hover {
   background-color: rgba(186, 250, 255, 0.2);
-}
-
-.btn-primary {
-  background-color: var(--color-acento);
-  border: none;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-primario-oscuro);
-  transform: translateY(-2px);
 }
 
 .btn-outline-primary {
@@ -192,14 +151,6 @@ h2::after {
   color: #856404;
   border-radius: 8px;
 }
-
-.logo-container {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
 .logo-placeholder {
   width: 100px;
   height: 80px;
@@ -221,17 +172,7 @@ h2::after {
 }
 
 /* Styles from templates/admin_login.html */
-:root {
-  --color-primario-oscuro: #275E62;
-  --color-primario-medio: #1F3637;
-  --color-acento: #20858C;
-  --color-claro-1: #BAFAFF;
-  --color-claro-2: #90F8FF;
-}
-
 body {
-  background: linear-gradient(135deg, var(--color-claro-1), var(--color-claro-2));
-  min-height: 100vh;
   display: flex;
   align-items: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -249,23 +190,11 @@ body {
 }
 
 h2 {
-  color: var(--color-primario-medio);
-  font-weight: 600;
-  text-align: center;
-  position: relative;
-  padding-bottom: 15px;
   margin-bottom: 1.5rem;
 }
 
 h2::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
   width: 80px;
-  height: 3px;
-  background-color: var(--color-acento);
 }
 
 .form-label {
@@ -286,16 +215,7 @@ h2::after {
 }
 
 .btn-primary {
-  background-color: var(--color-acento);
-  border: none;
   padding: 10px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-primario-oscuro);
-  transform: translateY(-2px);
 }
 
 .alert-danger {
@@ -317,8 +237,6 @@ h2::after {
 }
 
 .logo-container {
-  display: flex;
-  justify-content: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -337,19 +255,6 @@ h2::after {
 }
 
 /* Styles from templates/admin_ranking.html */
-:root {
-  --color-primario-oscuro: #275E62;
-  --color-primario-medio: #1F3637;
-  --color-acento: #20858C;
-  --color-claro-1: #BAFAFF;
-  --color-claro-2: #90F8FF;
-}
-
-body {
-  background: linear-gradient(135deg, var(--color-claro-1), var(--color-claro-2));
-  min-height: 100vh;
-}
-
 #rankingContent {
   background: white;
   border-radius: 15px;
@@ -390,22 +295,14 @@ h3::after {
   background-color: rgba(186, 250, 255, 0.2);
 }
 
-.btn-primary {
-  background-color: var(--color-acento);
-  border: none;
-  font-weight: 500;
-}
-
 .btn-secondary {
   background-color: #6c757d;
   border: none;
 }
 
+
 .logo-container {
-  display: flex;
-  justify-content: center;
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .logo-placeholder {
@@ -426,17 +323,7 @@ canvas {
 }
 
 /* Styles from templates/confirmacion.html */
-:root {
-  --color-primario-oscuro: #275E62;
-  --color-primario-medio: #1F3637;
-  --color-acento: #20858C;
-  --color-claro-1: #BAFAFF;
-  --color-claro-2: #90F8FF;
-}
-
 body {
-  background: linear-gradient(135deg, var(--color-claro-1), var(--color-claro-2));
-  min-height: 100vh;
   display: flex;
   align-items: center;
 }
@@ -478,23 +365,11 @@ p {
 }
 
 .btn-primary {
-  background-color: var(--color-acento);
-  border: none;
   padding: 10px 25px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-primario-oscuro);
-  transform: translateY(-2px);
 }
 
 .logo-container {
-  display: flex;
-  justify-content: center;
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .logo-placeholder {
@@ -511,17 +386,7 @@ p {
 }
 
 /* Styles from templates/index.html */
-:root {
-  --color-primario-oscuro: #275E62;
-  --color-primario-medio: #1F3637;
-  --color-acento: #20858C;
-  --color-claro-1: #BAFAFF;
-  --color-claro-2: #90F8FF;
-}
-
 body {
-  background: linear-gradient(135deg, var(--color-claro-1), var(--color-claro-2));
-  min-height: 100vh;
   display: flex;
   align-items: center;
 }
@@ -548,16 +413,7 @@ body {
 }
 
 .btn-primary {
-  background-color: var(--color-acento);
-  border: none;
   padding: 10px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-primario-oscuro);
-  transform: translateY(-2px);
 }
 
 .btn-outline-dark {
@@ -572,7 +428,6 @@ body {
 }
 
 .logo-container {
-  display: flex;
   justify-content: space-around;
   align-items: center;
   margin-bottom: 1.5rem;
@@ -635,17 +490,7 @@ body {
 }
 
 /* Styles from templates/admin_detalle.html */
-:root {
-  --color-primario-oscuro: #275E62;
-  --color-primario-medio: #1F3637;
-  --color-acento: #20858C;
-  --color-claro-1: #BAFAFF;
-  --color-claro-2: #90F8FF;
-}
-
 body {
-  background: linear-gradient(135deg, var(--color-claro-1), var(--color-claro-2));
-  min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -744,16 +589,10 @@ h3::after {
 }
 
 .btn-primary {
-  background-color: var(--color-acento);
-  border: none;
   padding: 10px 25px;
-  font-weight: 500;
-  transition: all 0.3s;
 }
 
 .btn-primary:hover {
-  background-color: var(--color-primario-oscuro);
-  transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
