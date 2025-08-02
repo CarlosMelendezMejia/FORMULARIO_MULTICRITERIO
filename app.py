@@ -203,6 +203,28 @@ def panel_admin():
 
     return render_template('admin.html', respuestas=respuestas)
 
+
+@app.route('/admin/factores', methods=['GET', 'POST'])
+def administrar_factores():
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        for i in range(1, 11):
+            nombre = request.form.get(f'nombre_{i}')
+            descripcion = request.form.get(f'descripcion_{i}')
+            cursor.execute(
+                "UPDATE factor SET nombre=%s, descripcion=%s WHERE id=%s",
+                (nombre, descripcion, i)
+            )
+        conn.commit()
+        flash("Factores actualizados correctamente.")
+        return redirect(url_for('administrar_factores'))
+
+    cursor.execute("SELECT * FROM factor ORDER BY id")
+    factores = cursor.fetchall()
+    return render_template('admin_factores.html', factores=factores)
+
 # ==============================
 # DETALLE DE RESPUESTA (ADMIN)
 # ==============================
