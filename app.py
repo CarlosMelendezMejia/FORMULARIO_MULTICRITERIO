@@ -292,6 +292,18 @@ def vista_ranking():
 
 
 # ==============================
+# ERRORES
+# ==============================
+
+@app.errorhandler(400)
+def handle_bad_request(error):
+    return render_template('error_400.html'), 400
+
+@app.errorhandler(500)
+def handle_server_error(error):
+    return render_template('error_500.html'), 500
+
+# ==============================
 # MAIN
 # ==============================
 
