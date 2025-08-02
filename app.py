@@ -249,61 +249,16 @@ def guardar_ponderacion():
 # ==============================
 
 @app.route('/admin/ranking')
-def ranking_factores():
+def vista_ranking():
     cursor.execute("""
-        SELECT f.nombre, SUM(p.peso_admin) AS total
+        SELECT f.nombre, SUM(p.peso_admin * rd.valor_usuario) AS total
         FROM ponderacion_admin p
-        JOIN factor f ON p.id_factor = f.id
+        JOIN respuesta_detalle rd ON rd.id_respuesta = p.id_respuesta AND rd.id_factor = p.id_factor
+        JOIN factor f ON f.id = p.id_factor
         GROUP BY f.id
         ORDER BY total DESC
     """)
     ranking = cursor.fetchall()
-    return render_template('admin_ranking.html', ranking=ranking)
-
-
-# ==============================
-# VISTA DE RANKING (ADMIN)
-# ==============================
-@app.route('/admin/ranking')
-def vista_ranking():
-    # Obtener todas las ponderaciones: (id_respuesta, id_factor) => ponderación
-    cursor.execute("""
-        SELECT id_respuesta, id_factor, peso_admin
-        FROM ponderacion_admin
-    """)
-    ponderaciones_raw = cursor.fetchall()
-    ponderaciones = {
-        (p['id_respuesta'], p['id_factor']): p['peso_admin']
-        for p in ponderaciones_raw
-    }
-
-    # Obtener todas las respuestas: (id_respuesta, id_factor, valor_usuario)
-    cursor.execute("""
-        SELECT rd.id_respuesta, rd.id_factor, rd.valor_usuario, f.nombre
-        FROM respuesta_detalle rd
-        JOIN factor f ON rd.id_factor = f.id
-    """)
-    respuestas = cursor.fetchall()
-
-    # Calcular sumatoria ponderada por factor
-    sumatorias = {}
-    for r in respuestas:
-        key = (r['id_respuesta'], r['id_factor'])
-        ponderacion = ponderaciones.get(key)
-        if ponderacion is not None:
-            nombre_factor = r['nombre']
-            ponderado = r['valor_usuario'] * ponderacion
-            if nombre_factor not in sumatorias:
-                sumatorias[nombre_factor] = 0
-            sumatorias[nombre_factor] += ponderado
-
-    # Convertir a lista ordenada por valor descendente
-    ranking = sorted(
-        [{'nombre': nombre, 'total': total} for nombre, total in sumatorias.items()],
-        key=lambda x: x['total'],
-        reverse=True
-    )
-
     return render_template('admin_ranking.html', ranking=ranking)
 
 
