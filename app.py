@@ -63,8 +63,23 @@ def mostrar_formulario(id_usuario):
 def guardar_respuesta():
     id_usuario = request.form['usuario_id']
     id_formulario = request.form['formulario_id']
-    
-    # Extraer los valores y verificar unicidad
+    nombre = request.form['nombre'].strip()
+    apellidos = request.form['apellidos'].strip()
+    cargo = request.form['cargo'].strip()
+    dependencia = request.form['dependencia'].strip()
+
+    # 1. Actualizar los datos del usuario
+    cursor.execute("""
+        UPDATE usuario
+        SET nombre = %s,
+            apellidos = %s,
+            cargo = %s,
+            dependencia = %s
+        WHERE id = %s
+    """, (nombre, apellidos, cargo, dependencia, id_usuario))
+    conn.commit()
+
+    # 2. Extraer los valores y validar unicidad
     valores = []
     for i in range(1, 11):
         factor_id = request.form[f'factor_id_{i}']
@@ -76,20 +91,25 @@ def guardar_respuesta():
         flash("Cada valor del 1 al 10 debe ser único. No se permiten duplicados.")
         return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
 
-    # Insertar respuesta general
-    cursor.execute("INSERT INTO respuesta (id_usuario, id_formulario) VALUES (%s, %s)", (id_usuario, id_formulario))
+    # 3. Insertar en tabla respuesta
+    cursor.execute("""
+        INSERT INTO respuesta (id_usuario, id_formulario)
+        VALUES (%s, %s)
+    """, (id_usuario, id_formulario))
     conn.commit()
     id_respuesta = cursor.lastrowid
 
-    # Insertar detalle por factor
+    # 4. Insertar en detalle por factor
     for factor_id, valor in valores:
         cursor.execute("""
             INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
             VALUES (%s, %s, %s)
         """, (id_respuesta, factor_id, valor))
     conn.commit()
+    
+    return render_template('confirmacion.html')
 
-    return "¡Respuestas registradas exitosamente!"
+
 
 # ==============================
 # PANEL DE ADMINISTRADOR (resumen)
