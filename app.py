@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from collections import defaultdict
+from dotenv import load_dotenv
+load_dotenv()
 
 from db import get_connection, get_cursor
 
