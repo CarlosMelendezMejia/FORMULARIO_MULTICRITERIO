@@ -74,9 +74,11 @@
             align-items: center;
             margin-bottom: 1.5rem;
             padding: 0 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         
-        .logo-placeholder {
+        .logo-img-container {
             width: 80px;
             height: 80px;
             background-color: #f8f9fa;
@@ -84,9 +86,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #6c757d;
-            font-size: 12px;
             border: 1px dashed #dee2e6;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        
+        .logo-img-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
         
         .form-control:focus {
@@ -137,9 +145,15 @@
             <div class="card-body">
                 <!-- Espacio para los 3 logos -->
                 <div class="logo-container">
-                    <div class="logo-placeholder">Logo 1</div>
-                    <div class="logo-placeholder">Logo 2</div>
-                    <div class="logo-placeholder">Logo 3</div>
+                    <div class="logo-img-container">
+                        <img src="static/img/logo_unam.png" alt="Logo UNAM">
+                    </div>
+                    <div class="logo-img-container">
+                        <img src="static/img/logo_fes.png" alt="Logo FES">
+                    </div>
+                    <div class="logo-img-container">
+                        <img src="static/img/logo3.png" alt="Logo 3">
+                    </div>
                 </div>
                 
                 <form action="/formulario_redirect" method="post">
