@@ -8,7 +8,6 @@
 </head>
 
 <body class="bg-light">
-
     <div class="container py-5">
         <h2 class="mb-4 text-center">Panel del Administrador</h2>
 
@@ -22,6 +21,7 @@
                         <th>Apellidos</th>
                         <th>Formulario</th>
                         <th>Fecha de Respuesta</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -32,6 +32,12 @@
                         <td>{{ r.apellidos }}</td>
                         <td>{{ r.formulario }}</td>
                         <td class="text-center">{{ r.fecha_respuesta.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="text-center">
+                            <a href="{{ url_for('detalle_respuesta', id_respuesta=r.id_respuesta) }}"
+                                class="btn btn-sm btn-primary">
+                                Ver Detalle
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -40,6 +46,9 @@
         {% else %}
         <div class="alert alert-warning text-center">Aún no hay respuestas registradas.</div>
         {% endif %}
+    </div>
+    <div class="text-end mb-3">
+        <a href="{{ url_for('vista_ranking') }}" class="btn btn-outline-primary">Ver Ranking Global</a>
     </div>
 
 </body>

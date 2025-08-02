@@ -186,19 +186,37 @@ def detalle_respuesta(id_respuesta):
     """, (id_respuesta,))
     respuesta = cursor.fetchone()
 
-    # Detalle de los factores
+    # Factores con valor del usuario + ponderación previa
     cursor.execute("""
-        SELECT fd.id_factor, fa.nombre, fa.descripcion, fd.valor_usuario,
+        SELECT rd.id_factor, fa.nombre, fa.descripcion, rd.valor_usuario,
                COALESCE(pa.peso_admin, '') AS peso_admin
-        FROM respuesta_detalle fd
-        JOIN factor fa ON fd.id_factor = fa.id
-        LEFT JOIN ponderacion_admin pa ON pa.id_respuesta = fd.id_respuesta AND pa.id_factor = fd.id_factor
-        WHERE fd.id_respuesta = %s
+        FROM respuesta_detalle rd
+        JOIN factor fa ON rd.id_factor = fa.id
+        LEFT JOIN ponderacion_admin pa
+          ON pa.id_respuesta = rd.id_respuesta AND pa.id_factor = rd.id_factor
+        WHERE rd.id_respuesta = %s
         ORDER BY fa.id
     """, (id_respuesta,))
     factores = cursor.fetchall()
 
-    return render_template('admin_detalle.html', respuesta=respuesta, factores=factores)
+    # Ranking acumulado (de todas las ponderaciones globales)
+    cursor.execute("""
+        SELECT f.nombre, SUM(p.peso_admin * rd.valor_usuario) AS total
+        FROM ponderacion_admin p
+        JOIN respuesta_detalle rd ON rd.id_respuesta = p.id_respuesta AND rd.id_factor = p.id_factor
+        JOIN factor f ON f.id = p.id_factor
+        GROUP BY f.id
+        ORDER BY total DESC
+    """)
+    ranking = cursor.fetchall()
+
+    return render_template(
+        'admin_detalle.html',
+        respuesta=respuesta,
+        factores=factores,
+        ranking=ranking
+    )
+
 
 # ==============================
 # GUARDAR PONDERACIÓN (ADMIN)
@@ -240,6 +258,52 @@ def ranking_factores():
         ORDER BY total DESC
     """)
     ranking = cursor.fetchall()
+    return render_template('admin_ranking.html', ranking=ranking)
+
+
+# ==============================
+# VISTA DE RANKING (ADMIN)
+# ==============================
+@app.route('/admin/ranking')
+def vista_ranking():
+    # Obtener todas las ponderaciones: (id_respuesta, id_factor) => ponderación
+    cursor.execute("""
+        SELECT id_respuesta, id_factor, peso_admin
+        FROM ponderacion_admin
+    """)
+    ponderaciones_raw = cursor.fetchall()
+    ponderaciones = {
+        (p['id_respuesta'], p['id_factor']): p['peso_admin']
+        for p in ponderaciones_raw
+    }
+
+    # Obtener todas las respuestas: (id_respuesta, id_factor, valor_usuario)
+    cursor.execute("""
+        SELECT rd.id_respuesta, rd.id_factor, rd.valor_usuario, f.nombre
+        FROM respuesta_detalle rd
+        JOIN factor f ON rd.id_factor = f.id
+    """)
+    respuestas = cursor.fetchall()
+
+    # Calcular sumatoria ponderada por factor
+    sumatorias = {}
+    for r in respuestas:
+        key = (r['id_respuesta'], r['id_factor'])
+        ponderacion = ponderaciones.get(key)
+        if ponderacion is not None:
+            nombre_factor = r['nombre']
+            ponderado = r['valor_usuario'] * ponderacion
+            if nombre_factor not in sumatorias:
+                sumatorias[nombre_factor] = 0
+            sumatorias[nombre_factor] += ponderado
+
+    # Convertir a lista ordenada por valor descendente
+    ranking = sorted(
+        [{'nombre': nombre, 'total': total} for nombre, total in sumatorias.items()],
+        key=lambda x: x['total'],
+        reverse=True
+    )
+
     return render_template('admin_ranking.html', ranking=ranking)
 
 
