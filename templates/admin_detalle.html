@@ -20,6 +20,14 @@
         <form method="post" action="{{ url_for('guardar_ponderacion') }}">
             <input type="hidden" name="id_respuesta" value="{{ respuesta.id_respuesta }}">
 
+            <div class="mb-3">
+                <label for="ponderacion_global" class="form-label">Ponderación Global</label>
+                <div class="input-group">
+                    <input type="number" step="0.1" min="0" max="10" id="ponderacion_global" class="form-control">
+                    <button type="button" id="aplicar_a_todos" class="btn btn-secondary">Aplicar a todos</button>
+                </div>
+            </div>
+
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
                     <thead>
@@ -66,6 +74,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const inputs = document.querySelectorAll('.ponderacion');
+        const ponderacionGlobal = document.getElementById('ponderacion_global');
+        const aplicarBtn = document.getElementById('aplicar_a_todos');
 
         function actualizarPonderados() {
             inputs.forEach(input => {
@@ -91,6 +101,16 @@
             input.addEventListener('input', actualizarPonderados);
             input.addEventListener('change', actualizarPonderados);
         });
+
+        if (aplicarBtn && ponderacionGlobal) {
+            aplicarBtn.addEventListener('click', () => {
+                const valor = ponderacionGlobal.value;
+                inputs.forEach(input => {
+                    input.value = valor;
+                });
+                actualizarPonderados();
+            });
+        }
 
         actualizarPonderados();
     });
