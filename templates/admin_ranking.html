@@ -1,79 +1,203 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Ranking de Factores</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Ranking de Factores</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+  <!-- Chart.js y librerías de captura -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --color-primario-oscuro: #275E62;
+      --color-primario-medio: #1F3637;
+      --color-acento: #20858C;
+      --color-claro-1: #BAFAFF;
+      --color-claro-2: #90F8FF;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--color-claro-1), var(--color-claro-2));
+      min-height: 100vh;
+    }
+
+    #rankingContent {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 2.5rem;
+      margin: 2rem auto;
+      max-width: 900px;
+    }
+
+    h3 {
+      color: var(--color-primario-medio);
+      font-weight: 600;
+      text-align: center;
+      position: relative;
+      padding-bottom: 15px;
+      margin-bottom: 2rem;
+    }
+
+    h3::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background-color: var(--color-acento);
+    }
+
+    .table thead th {
+      background-color: var(--color-primario-medio);
+      color: white;
+      vertical-align: middle;
+      font-weight: 500;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: rgba(186, 250, 255, 0.2);
+    }
+
+    .btn-primary {
+      background-color: var(--color-acento);
+      border: none;
+      font-weight: 500;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      border: none;
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .logo-placeholder {
+      width: 80px;
+      height: 60px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+      font-size: 12px;
+      border: 1px dashed #dee2e6;
+    }
+
+    canvas {
+      max-height: 300px;
+    }
+  </style>
 </head>
 
-<body class="bg-light">
-    <div id="rankingContent" class="container py-5">
-        <h3 class="text-center mb-4">Ranking Global de Factores</h3>
+<body>
+  <div class="container py-5">
+    <div id="rankingContent">
+      <div class="logo-container">
+        <div class="logo-placeholder">Logo 1</div>
+        <div class="logo-placeholder">Logo 2</div>
+        <div class="logo-placeholder">Logo 3</div>
+      </div>
 
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover bg-white shadow-sm text-center">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Puesto</th>
-                        <th>Factor</th>
-                        <th>Total Ponderado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in ranking %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ r.nombre }}</td>
-                        <td>{{ '%.2f' | format(r.total or 0) }}</td>
-                    </tr>
-                    {% endfor %}
+      <h3>Ranking Global de Factores</h3>
 
-                </tbody>
-            </table>
-        </div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover text-center">
+          <thead>
+            <tr>
+              <th>Puesto</th>
+              <th>Factor</th>
+              <th>Total Ponderado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in ranking %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ r.nombre }}</td>
+              <td>{{ '%.2f' | format(r.total or 0) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-        <canvas id="rankingChart" class="mt-4"></canvas>
+      <canvas id="rankingChart" class="mt-4"></canvas>
 
-        <div class="text-center mt-4">
-            <button id="downloadPDF" class="btn btn-primary me-2">Descargar PDF</button>
-            <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">Volver al Panel</a>
-        </div>
+      <div class="text-center mt-4">
+        <button id="downloadPNG" class="btn btn-primary me-2">Descargar como Imagen (PDF)</button>
+        <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">Volver al Panel</a>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const factorLabels = {{ ranking|map(attribute='nombre')|list|tojson | safe }};
-        const factorTotals = {{ ranking|map(attribute='total')|list|tojson | safe }};
+  <script>
+    // Renderizar gráfico con datos desde Jinja
+    const factorLabels = {{ ranking | map(attribute='nombre') | list | tojson | safe }};
+    const factorTotals = {{ ranking | map(attribute='total') | list | tojson | safe }};
 
-        const ctx = document.getElementById('rankingChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: factorLabels,
-                datasets: [{
-                    label: 'Total Ponderado',
-                    data: factorTotals,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+    const ctx = document.getElementById('rankingChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: factorLabels,
+        datasets: [{
+          label: 'Total Ponderado',
+          data: factorTotals,
+          backgroundColor: 'rgba(32, 133, 140, 0.5)',
+          borderColor: 'rgba(32, 133, 140, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
 
-        document.getElementById('downloadPDF').addEventListener('click', () => {
-            const element = document.getElementById('rankingContent');
-            html2pdf().from(element).save('ranking.pdf');
-        });
-    </script>
+    // Descargar como imagen dentro de PDF
+    document.getElementById('downloadPNG').addEventListener('click', () => {
+      const element = document.getElementById('rankingContent');
+      html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const imgProps = { width: canvas.width, height: canvas.height };
+        const ratio = imgProps.width / imgProps.height;
+        let imgWidth = pageWidth;
+        let imgHeight = pageWidth / ratio;
+
+        if (imgHeight > pageHeight) {
+          imgHeight = pageHeight;
+          imgWidth = pageHeight * ratio;
+        }
+
+        const x = (pageWidth - imgWidth) / 2;
+        const y = (pageHeight - imgHeight) / 2;
+
+        pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+        pdf.save('ranking_factores.pdf');
+      });
+    });
+  </script>
 </body>
-
 </html>
