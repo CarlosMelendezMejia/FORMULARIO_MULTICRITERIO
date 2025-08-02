@@ -8,7 +8,6 @@ from db import get_connection, get_cursor
 
 
 
-
 app = Flask(__name__)
 app.secret_key = 'clave-secreta-sencilla'
 

@@ -42,17 +42,17 @@
     </div>
 
     <script>
-        const labels = {{ ranking|map(attribute='nombre')|list }};
-        const data = {{ ranking|map(attribute='total')|list }};
+        const factorLabels = {{ ranking|map(attribute='nombre')|list|tojson | safe }};
+        const factorTotals = {{ ranking|map(attribute='total')|list|tojson | safe }};
 
         const ctx = document.getElementById('rankingChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: factorLabels,
                 datasets: [{
                     label: 'Total Ponderado',
-                    data: data,
+                    data: factorTotals,
                     backgroundColor: 'rgba(54, 162, 235, 0.5)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
