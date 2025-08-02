@@ -5,6 +5,118 @@
     <meta charset="UTF-8">
     <title>Formulario de Evaluación</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+          --color-primario-oscuro: #275E62;
+          --color-primario-medio: #1F3637;
+          --color-acento: #20858C;
+          --color-claro-1: #BAFAFF;
+          --color-claro-2: #90F8FF;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--color-claro-1), var(--color-claro-2));
+            min-height: 100vh;
+        }
+        
+        .evaluation-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            margin: 2rem auto;
+        }
+        
+        .table thead th {
+            background-color: var(--color-primario-medio);
+            color: white;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 500;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .bg-instruccion {
+            background-color: rgba(186, 250, 255, 0.3);
+            border-left: 5px solid var(--color-acento);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .form-label {
+            font-weight: bold;
+            color: var(--color-primario-medio);
+        }
+        
+        .btn-primary {
+            background-color: var(--color-acento);
+            border: none;
+            padding: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--color-primario-oscuro);
+            transform: translateY(-2px);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--color-acento);
+            box-shadow: 0 0 0 0.25rem rgba(32, 133, 140, 0.25);
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            border-radius: 8px;
+        }
+        
+        h2 {
+            color: var(--color-primario-medio);
+            margin-bottom: 2rem;
+            font-weight: 600;
+            text-align: center;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background-color: var(--color-acento);
+        }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-placeholder {
+            width: 100px;
+            height: 80px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 12px;
+            border: 1px dashed #dee2e6;
+        }
+    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -37,113 +149,98 @@
             actualizarOpciones();
         });
     </script>
-
-    <style>
-        .table thead th {
-            background-color: #003f88;
-            color: white;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-
-        .bg-instruccion {
-            background-color: #e3f2fd;
-            border-left: 5px solid #2196f3;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            font-weight: bold;
-        }
-    </style>
 </head>
 
-<body class="bg-light">
+<body>
     <div class="container py-5">
-        <h2 class="mb-4 text-center">Formulario de Evaluación Multicriterio</h2>
+        <div class="evaluation-card">
+            <!-- Espacio para los 3 logos -->
+            <div class="logo-container">
+                <div class="logo-placeholder">Logo 1</div>
+                <div class="logo-placeholder">Logo 2</div>
+                <div class="logo-placeholder">Logo 3</div>
+            </div>
+            
+            <h2>Formulario de Evaluación Multicriterio</h2>
 
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="alert alert-danger">
-            {{ messages[0] }}
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="alert alert-danger">
+                {{ messages[0] }}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form method="post" action="{{ url_for('guardar_respuesta') }}">
+                <input type="hidden" name="usuario_id" value="{{ usuario_id }}">
+                <input type="hidden" name="formulario_id" value="{{ formulario.id_formulario }}">
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" value="{{ usuario.nombre }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Apellidos</label>
+                        <input type="text" class="form-control" name="apellidos" value="{{ usuario.apellidos }}" required>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <label class="form-label">Cargo</label>
+                        <input type="text" class="form-control" name="cargo" value="{{ usuario.cargo }}" required>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <label class="form-label">Dependencia</label>
+                        <input type="text" class="form-control" name="dependencia" value="{{ usuario.dependencia }}" required>
+                    </div>
+                </div>
+
+                <div class="bg-instruccion">
+                    <strong>Instrucción:</strong> Por favor, según su percepción, ordene los siguientes factores asignando
+                    un valor del <strong>10 al 1</strong>, donde <strong>10 representa el factor de mayor
+                        importancia</strong> y <strong>1 el de menor relevancia</strong>.
+                    <br>Nota: Cada número debe ser único. No se pueden repetir valores.
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">Factores</th>
+                                <th style="width: 60%;">Definición</th>
+                                <th style="width: 15%;">Ponderación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factor in factores %}
+                            <tr>
+                                <td>
+                                    <strong>{{ factor.nombre }}</strong>
+                                    <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
+                                </td>
+                                <td>{{ factor.descripcion }}</td>
+                                <td class="text-center">
+                                    <select name="valor_{{ loop.index }}" class="form-select valor-factor" required>
+                                        <option value="">Seleccione</option>
+                                        {% for num in range(1, 11) %}
+                                        <option value="{{ num }}" {% if respuestas_previas[factor.id]|default('')==num
+                                            %}selected{% endif %}>
+                                            {{ num }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-4 w-100 py-3">Guardar Respuestas</button>
+            </form>
         </div>
-        {% endif %}
-        {% endwith %}
-
-        <form method="post" action="{{ url_for('guardar_respuesta') }}">
-            <input type="hidden" name="usuario_id" value="{{ usuario_id }}">
-            <input type="hidden" name="formulario_id" value="{{ formulario.id_formulario }}">
-
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label class="form-label">Nombre</label>
-                    <input type="text" class="form-control" name="nombre" value="{{ usuario.nombre }}" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Apellidos</label>
-                    <input type="text" class="form-control" name="apellidos" value="{{ usuario.apellidos }}" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label class="form-label">Cargo</label>
-                    <input type="text" class="form-control" name="cargo" value="{{ usuario.cargo }}" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label class="form-label">Dependencia</label>
-                    <input type="text" class="form-control" name="dependencia" value="{{ usuario.dependencia }}" required>
-                </div>
-            </div>
-
-            <div class="bg-instruccion">
-                <strong>Instrucción:</strong> Por favor, según su percepción, ordene los siguientes factores asignando
-                un valor del <strong>10 al 1</strong>, donde <strong>10 representa el factor de mayor
-                    importancia</strong> y <strong>1 el de menor relevancia</strong>.
-                <br>Nota: Cada número debe ser único. No se pueden repetir valores.
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">Factores</th>
-                            <th style="width: 60%;">Definición</th>
-                            <th style="width: 15%;">Ponderación</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for factor in factores %}
-                        <tr>
-                            <td>
-                                <strong>{{ factor.nombre }}</strong>
-                                <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
-                            </td>
-                            <td>{{ factor.descripcion }}</td>
-                            <td class="text-center">
-                                <select name="valor_{{ loop.index }}" class="form-select valor-factor" required>
-                                    <option value="">Seleccione</option>
-                                    {% for num in range(1, 11) %}
-                                    <option value="{{ num }}" {% if respuestas_previas[factor.id]|default('')==num
-                                        %}selected{% endif %}>
-                                        {{ num }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-
-
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <button type="submit" class="btn btn-primary mt-4 w-100">Guardar Respuestas</button>
-        </form>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
