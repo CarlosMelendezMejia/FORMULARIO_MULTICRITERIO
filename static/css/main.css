@@ -306,55 +306,14 @@ h2::after {
   padding: 1rem;
 }
 
-/* Contenedor mejorado para el campo de contraseña */
-.password-container {
-    position: relative;
-    margin-bottom: 1.5rem;
+.form-check-input:checked {
+  background-color: var(--color-acento);
+  border-color: var(--color-acento);
 }
 
-/* Estilo para el botón del ojo */
-.toggle-password {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    padding: 8px;
-    color: var(--color-primario-medio);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.toggle-password:hover {
-    background-color: rgba(32, 133, 140, 0.1);
-    color: var(--color-acento);
-}
-
-.toggle-password:active {
-    transform: translateY(-50%) scale(0.95);
-}
-
-.toggle-password i {
-    font-size: 1.2rem;
-    transition: all 0.2s ease;
-}
-
-/* Ajuste para el input de contraseña */
-#password {
-    padding-right: 45px; /* Más espacio para el ícono */
-    transition: all 0.3s;
-}
-
-#password:focus {
-    border-color: var(--color-acento);
-    box-shadow: 0 0 0 0.25rem rgba(32, 133, 140, 0.25);
+.form-check-label {
+  color: var(--color-primario-medio);
+  font-weight: 500;
 }
 
 .logo-container {
