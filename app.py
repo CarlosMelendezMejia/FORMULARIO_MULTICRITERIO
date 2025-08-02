@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+import os
 import mysql.connector
 from collections import defaultdict
 from dotenv import load_dotenv
 load_dotenv()
 
 from db import get_connection, get_cursor
+
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 
 
@@ -154,12 +157,31 @@ def guardar_respuesta():
 
 
 
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == ADMIN_PASSWORD:
+            session['is_admin'] = True
+            return redirect(url_for('panel_admin'))
+        flash('Contraseña incorrecta.')
+    return render_template('admin_login.html')
+
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('is_admin', None)
+    return redirect(url_for('index'))
+
+
 # ==============================
 # PANEL DE ADMINISTRADOR (resumen)
 # ==============================
 
 @app.route('/admin')
 def panel_admin():
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
     cursor.execute("""
         SELECT r.id AS id_respuesta, u.nombre, u.apellidos, f.nombre AS formulario, r.fecha_respuesta
         FROM respuesta r
@@ -177,6 +199,8 @@ def panel_admin():
 
 @app.route('/admin/respuesta/<int:id_respuesta>')
 def detalle_respuesta(id_respuesta):
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
     # Datos generales
     cursor.execute("""
         SELECT r.id AS id_respuesta, u.nombre, u.apellidos, f.nombre AS formulario
@@ -225,6 +249,8 @@ def detalle_respuesta(id_respuesta):
 
 @app.route('/admin/ponderar', methods=['POST'])
 def guardar_ponderacion():
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
     id_respuesta = request.form['id_respuesta']
     ponderaciones = []
 
@@ -251,6 +277,8 @@ def guardar_ponderacion():
 
 @app.route('/admin/ranking')
 def vista_ranking():
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
     cursor.execute("""
         SELECT f.nombre, SUM(p.peso_admin * rd.valor_usuario) AS total
         FROM ponderacion_admin p
