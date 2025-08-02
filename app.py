@@ -18,6 +18,16 @@ app.secret_key = 'clave-secreta-sencilla'
 conn = get_connection()
 cursor = get_cursor(conn)
 
+
+@app.after_request
+def add_no_cache_headers(response):
+    """Evita el cacheo de páginas protegidas para rutas de administrador."""
+    if request.path.startswith('/admin'):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    return response
+
 # ==============================
 # RUTA PRINCIPAL
 # ==============================
