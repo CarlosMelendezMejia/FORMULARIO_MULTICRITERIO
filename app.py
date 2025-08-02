@@ -37,7 +37,7 @@ def formulario_redirect():
 
 @app.route('/formulario/<int:id_usuario>')
 def mostrar_formulario(id_usuario):
-    # Obtener el formulario asignado al usuario
+    # Obtener el formulario asignado
     cursor.execute("""
         SELECT a.id_formulario, f.nombre AS nombre_formulario
         FROM asignacion a
@@ -49,11 +49,36 @@ def mostrar_formulario(id_usuario):
     if not asignacion:
         return "No se encontró un formulario asignado."
 
+    id_formulario = asignacion['id_formulario']
+
     # Obtener factores
     cursor.execute("SELECT * FROM factor")
     factores = cursor.fetchall()
 
-    return render_template('formulario.html', usuario_id=id_usuario, formulario=asignacion, factores=factores)
+    # Obtener datos del usuario
+    cursor.execute("SELECT * FROM usuario WHERE id = %s", (id_usuario,))
+    usuario = cursor.fetchone()
+
+    # Obtener respuestas anteriores (si existen)
+    cursor.execute("""
+        SELECT rd.id_factor, rd.valor_usuario
+        FROM respuesta r
+        JOIN respuesta_detalle rd ON r.id = rd.id_respuesta
+        WHERE r.id_usuario = %s AND r.id_formulario = %s
+    """, (id_usuario, id_formulario))
+    respuestas_previas = cursor.fetchall()
+
+    # Convertir a diccionario {id_factor: valor}
+    respuestas_dict = {r['id_factor']: r['valor_usuario'] for r in respuestas_previas}
+
+    return render_template(
+        'formulario.html',
+        usuario_id=id_usuario,
+        formulario=asignacion,
+        factores=factores,
+        usuario=usuario,
+        respuestas_previas=respuestas_dict
+    )
 
 # ==============================
 # GUARDAR RESPUESTA DE FORMULARIO
@@ -61,8 +86,10 @@ def mostrar_formulario(id_usuario):
 
 @app.route('/guardar_respuesta', methods=['POST'])
 def guardar_respuesta():
-    id_usuario = request.form['usuario_id']
-    id_formulario = request.form['formulario_id']
+    id_usuario = int(request.form['usuario_id'])
+    id_formulario = int(request.form['formulario_id'])
+
+    # Datos personales
     nombre = request.form['nombre'].strip()
     apellidos = request.form['apellidos'].strip()
     cargo = request.form['cargo'].strip()
@@ -79,10 +106,25 @@ def guardar_respuesta():
     """, (nombre, apellidos, cargo, dependencia, id_usuario))
     conn.commit()
 
-    # 2. Extraer los valores y validar unicidad
+    # 2. Verificar si ya hay una respuesta existente → si sí, eliminarla
+    cursor.execute("""
+        SELECT id FROM respuesta
+        WHERE id_usuario = %s AND id_formulario = %s
+    """, (id_usuario, id_formulario))
+    anterior = cursor.fetchone()
+
+    if anterior:
+        id_anterior = anterior['id']
+        # Eliminar ponderaciones si existen
+        cursor.execute("DELETE FROM ponderacion_admin WHERE id_respuesta = %s", (id_anterior,))
+        cursor.execute("DELETE FROM respuesta_detalle WHERE id_respuesta = %s", (id_anterior,))
+        cursor.execute("DELETE FROM respuesta WHERE id = %s", (id_anterior,))
+        conn.commit()
+
+    # 3. Leer los 10 valores únicos de los factores
     valores = []
     for i in range(1, 11):
-        factor_id = request.form[f'factor_id_{i}']
+        factor_id = int(request.form[f'factor_id_{i}'])
         valor = int(request.form[f'valor_{i}'])
         valores.append((factor_id, valor))
 
@@ -91,7 +133,7 @@ def guardar_respuesta():
         flash("Cada valor del 1 al 10 debe ser único. No se permiten duplicados.")
         return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
 
-    # 3. Insertar en tabla respuesta
+    # 4. Insertar nueva respuesta
     cursor.execute("""
         INSERT INTO respuesta (id_usuario, id_formulario)
         VALUES (%s, %s)
@@ -99,14 +141,14 @@ def guardar_respuesta():
     conn.commit()
     id_respuesta = cursor.lastrowid
 
-    # 4. Insertar en detalle por factor
+    # 5. Insertar detalle de factores
     for factor_id, valor in valores:
         cursor.execute("""
             INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
             VALUES (%s, %s, %s)
         """, (id_respuesta, factor_id, valor))
     conn.commit()
-    
+
     return render_template('confirmacion.html')
 
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Formulario de Evaluación</title>
@@ -61,79 +62,88 @@
         }
     </style>
 </head>
-<body class="bg-light">
-<div class="container py-5">
-    <h2 class="mb-4 text-center">Formulario de Evaluación Multicriterio</h2>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
+<body class="bg-light">
+    <div class="container py-5">
+        <h2 class="mb-4 text-center">Formulario de Evaluación Multicriterio</h2>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
         <div class="alert alert-danger">
             {{ messages[0] }}
         </div>
-      {% endif %}
-    {% endwith %}
+        {% endif %}
+        {% endwith %}
 
-    <form method="post" action="{{ url_for('guardar_respuesta') }}">
-        <input type="hidden" name="usuario_id" value="{{ usuario_id }}">
-        <input type="hidden" name="formulario_id" value="{{ formulario.id_formulario }}">
+        <form method="post" action="{{ url_for('guardar_respuesta') }}">
+            <input type="hidden" name="usuario_id" value="{{ usuario_id }}">
+            <input type="hidden" name="formulario_id" value="{{ formulario.id_formulario }}">
 
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <label class="form-label">Nombre</label>
-                <input type="text" class="form-control" name="nombre" value="" required>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" name="nombre" value="{{ usuario.nombre }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Apellidos</label>
+                    <input type="text" class="form-control" name="apellidos" value="{{ usuario.apellidos }}" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label class="form-label">Cargo</label>
+                    <input type="text" class="form-control" name="cargo" value="{{ usuario.cargo }}" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label class="form-label">Dependencia</label>
+                    <input type="text" class="form-control" name="dependencia" value="{{ usuario.dependencia }}" required>
+                </div>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Apellidos</label>
-                <input type="text" class="form-control" name="apellidos" value="" required>
-            </div>
-            <div class="col-md-6 mt-3">
-                <label class="form-label">Cargo</label>
-                <input type="text" class="form-control" name="cargo" value="FES Aragón" required>
-            </div>
-            <div class="col-md-6 mt-3">
-                <label class="form-label">Dependencia</label>
-                <input type="text" class="form-control" name="dependencia" value="FES Aragón" required>
-            </div>
-        </div>
 
-        <div class="bg-instruccion">
-            <strong>Instrucción:</strong> Por favor, según su percepción, ordene los siguientes factores asignando un valor del <strong>10 al 1</strong>, donde <strong>10 representa el factor de mayor importancia</strong> y <strong>1 el de menor relevancia</strong>.
-            <br>Nota: Cada número debe ser único. No se pueden repetir valores.
-        </div>
+            <div class="bg-instruccion">
+                <strong>Instrucción:</strong> Por favor, según su percepción, ordene los siguientes factores asignando
+                un valor del <strong>10 al 1</strong>, donde <strong>10 representa el factor de mayor
+                    importancia</strong> y <strong>1 el de menor relevancia</strong>.
+                <br>Nota: Cada número debe ser único. No se pueden repetir valores.
+            </div>
 
-        <div class="table-responsive">
-            <table class="table table-bordered align-middle">
-                <thead>
-                    <tr>
-                        <th style="width: 25%;">Factores</th>
-                        <th style="width: 60%;">Definición</th>
-                        <th style="width: 15%;">Ponderación</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for factor in factores %}
-                    <tr>
-                        <td>
-                            <strong>{{ factor.nombre }}</strong>
-                            <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
-                        </td>
-                        <td>{{ factor.descripcion }}</td>
-                        <td class="text-center">
-                            <select name="valor_{{ loop.index }}" class="form-select valor-factor" required>
-                                <option value="">Seleccione</option>
-                                {% for num in range(1, 11) %}
-                                    <option value="{{ num }}">{{ num }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Factores</th>
+                            <th style="width: 60%;">Definición</th>
+                            <th style="width: 15%;">Ponderación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for factor in factores %}
+                        <tr>
+                            <td>
+                                <strong>{{ factor.nombre }}</strong>
+                                <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
+                            </td>
+                            <td>{{ factor.descripcion }}</td>
+                            <td class="text-center">
+                                <select name="valor_{{ loop.index }}" class="form-select valor-factor" required>
+                                    <option value="">Seleccione</option>
+                                    {% for num in range(1, 11) %}
+                                    <option value="{{ num }}" {% if respuestas_previas[factor.id]|default('')==num
+                                        %}selected{% endif %}>
+                                        {{ num }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
 
-        <button type="submit" class="btn btn-primary mt-4 w-100">Guardar Respuestas</button>
-    </form>
-</div>
+
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-4 w-100">Guardar Respuestas</button>
+        </form>
+    </div>
 </body>
+
 </html>
