@@ -2,21 +2,38 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from collections import defaultdict
 
+from db import get_connection, get_cursor
+
+
+
+
 app = Flask(__name__)
 app.secret_key = 'clave-secreta-sencilla'
 
 # Conexión a la base de datos
-conn = mysql.connector.connect(
-    host='localhost',
-    user='tu_usuario',
-    password='tu_password',
-    database='sistema_formularios'
-)
-cursor = conn.cursor(dictionary=True)
+conn = get_connection()
+cursor = get_cursor(conn)
+
+# ==============================
+# RUTA PRINCIPAL
+# ==============================
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/formulario_redirect', methods=['POST'])
+def formulario_redirect():
+    usuario_id = request.form['usuario_id']
+    return redirect(url_for('mostrar_formulario', id_usuario=usuario_id))
+
+
 
 # ==============================
 # RUTA PARA FORMULARIO DE USUARIO
 # ==============================
+
+
 
 @app.route('/formulario/<int:id_usuario>')
 def mostrar_formulario(id_usuario):
@@ -90,6 +107,79 @@ def panel_admin():
     respuestas = cursor.fetchall()
 
     return render_template('admin.html', respuestas=respuestas)
+
+# ==============================
+# DETALLE DE RESPUESTA (ADMIN)
+# ==============================
+
+@app.route('/admin/respuesta/<int:id_respuesta>')
+def detalle_respuesta(id_respuesta):
+    # Datos generales
+    cursor.execute("""
+        SELECT r.id AS id_respuesta, u.nombre, u.apellidos, f.nombre AS formulario
+        FROM respuesta r
+        JOIN usuario u ON r.id_usuario = u.id
+        JOIN formulario f ON r.id_formulario = f.id
+        WHERE r.id = %s
+    """, (id_respuesta,))
+    respuesta = cursor.fetchone()
+
+    # Detalle de los factores
+    cursor.execute("""
+        SELECT fd.id_factor, fa.nombre, fa.descripcion, fd.valor_usuario,
+               COALESCE(pa.peso_admin, '') AS peso_admin
+        FROM respuesta_detalle fd
+        JOIN factor fa ON fd.id_factor = fa.id
+        LEFT JOIN ponderacion_admin pa ON pa.id_respuesta = fd.id_respuesta AND pa.id_factor = fd.id_factor
+        WHERE fd.id_respuesta = %s
+        ORDER BY fa.id
+    """, (id_respuesta,))
+    factores = cursor.fetchall()
+
+    return render_template('admin_detalle.html', respuesta=respuesta, factores=factores)
+
+# ==============================
+# GUARDAR PONDERACIÓN (ADMIN)
+# ==============================
+
+@app.route('/admin/ponderar', methods=['POST'])
+def guardar_ponderacion():
+    id_respuesta = request.form['id_respuesta']
+    ponderaciones = []
+
+    for key, value in request.form.items():
+        if key.startswith('ponderacion_') and value.strip() != '':
+            id_factor = key.split('_')[1]
+            ponderaciones.append((id_respuesta, id_factor, float(value)))
+
+    for id_respuesta, id_factor, peso in ponderaciones:
+        # UPSERT (actualizar si existe, insertar si no)
+        cursor.execute("""
+            INSERT INTO ponderacion_admin (id_respuesta, id_factor, peso_admin)
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE peso_admin = VALUES(peso_admin)
+        """, (id_respuesta, id_factor, peso))
+    conn.commit()
+
+    flash("Ponderaciones guardadas correctamente.")
+    return redirect(url_for('detalle_respuesta', id_respuesta=id_respuesta))
+
+# ==============================
+# RANKING DE FACTORES (ADMIN)
+# ==============================
+
+@app.route('/admin/ranking')
+def ranking_factores():
+    cursor.execute("""
+        SELECT f.nombre, SUM(p.peso_admin) AS total
+        FROM ponderacion_admin p
+        JOIN factor f ON p.id_factor = f.id
+        GROUP BY f.id
+        ORDER BY total DESC
+    """)
+    ranking = cursor.fetchall()
+    return render_template('admin_ranking.html', ranking=ranking)
+
 
 # ==============================
 # MAIN
