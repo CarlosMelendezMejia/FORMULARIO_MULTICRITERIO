@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import os
 import mysql.connector
 from collections import defaultdict
+from decimal import Decimal, InvalidOperation
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -289,9 +290,24 @@ def guardar_ponderacion():
     ponderaciones = []
 
     for key, value in request.form.items():
-        if key.startswith('ponderacion_') and value.strip() != '':
-            id_factor = key.split('_')[1]
-            ponderaciones.append((id_respuesta, id_factor, float(value)))
+        if not key.startswith('ponderacion_'):
+            continue
+        valor = value.strip()
+        if valor == '':
+            continue
+        try:
+            peso = Decimal(valor)
+        except InvalidOperation:
+            flash("Las ponderaciones deben ser valores numéricos.")
+            return redirect(url_for('detalle_respuesta', id_respuesta=id_respuesta))
+
+        if peso < 0 or peso > 10:
+            flash("Cada ponderación debe estar entre 0 y 10.")
+            return redirect(url_for('detalle_respuesta', id_respuesta=id_respuesta))
+
+        peso = peso.quantize(Decimal('0.1'))
+        id_factor = key.split('_')[1]
+        ponderaciones.append((id_respuesta, id_factor, float(peso)))
 
     for id_respuesta, id_factor, peso in ponderaciones:
         # UPSERT (actualizar si existe, insertar si no)
