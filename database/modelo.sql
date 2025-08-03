@@ -22,7 +22,7 @@ CREATE TABLE asignacion (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     id_formulario INT NOT NULL,
-    UNIQUE (id_usuario, id_formulario),
+    UNIQUE (id_usuario),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id),
     FOREIGN KEY (id_formulario) REFERENCES formulario(id)
 );
