@@ -14,6 +14,20 @@
             background: url("{{ url_for('static', filename='img/background.png') }}") no-repeat center center fixed;
             background-size: cover;
         }
+
+        .login-card {
+            background-color: white;
+            /* Fondo blanco */
+            border-radius: 10px;
+            /* Bordes redondeados para mejor apariencia */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Sombra para mejor contraste */
+        }
+
+        .card-header {
+            background-color: #343a40;
+            /* Manteniendo el color oscuro del header */
+        }
     </style>
 </head>
 
@@ -25,7 +39,7 @@
                 <!-- Icono de información -->
                 <i class="bi bi-info-circle info-icon" data-bs-toggle="modal" data-bs-target="#instruccionesModal"></i>
             </div>
-            
+
             <div class="card-body">
                 <!-- Espacio para los 3 logos -->
                 <div class="logo-container">
@@ -39,7 +53,7 @@
                         <img src="{{ url_for('static', filename='img/logo_planeacion.png') }}" alt="Logo Planeación">
                     </div>
                 </div>
-                
+
                 <form action="/formulario_redirect" method="post">
                     <div class="mb-3">
                         <label for="usuario_id" class="form-label">ID de Usuario</label>
@@ -52,14 +66,16 @@
                 <hr class="my-4">
 
                 <div class="text-center">
-                    <a href="{{ url_for('admin_login') }}" class="btn btn-outline-dark w-100">Ingresar como Administrador</a>
+                    <a href="{{ url_for('admin_login') }}" class="btn btn-outline-dark w-100">Ingresar como
+                        Administrador</a>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modal de Instrucciones -->
-    <div class="modal fade" id="instruccionesModal" tabindex="-1" aria-labelledby="instruccionesModalLabel" aria-hidden="true">
+    <div class="modal fade" id="instruccionesModal" tabindex="-1" aria-labelledby="instruccionesModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
