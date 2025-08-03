@@ -260,7 +260,12 @@ def panel_admin():
     offset = (page - 1) * per_page
     g.cursor.execute(
         """
-        SELECT r.id AS id_respuesta, u.nombre, u.apellidos, f.nombre AS formulario, r.fecha_respuesta
+        SELECT r.id AS id_respuesta,
+               u.nombre,
+               u.apellidos,
+               f.nombre AS formulario,
+               r.fecha_respuesta,
+               DATE_FORMAT(r.fecha_respuesta, '%Y-%m-%d %H:%i') AS fecha_respuesta_fmt
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id

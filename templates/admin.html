@@ -40,7 +40,13 @@
                             <td>{{ r.nombre }}</td>
                             <td>{{ r.apellidos }}</td>
                             <td>{{ r.formulario }}</td>
-                            <td class="text-center">{{ r.fecha_respuesta.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td class="text-center">
+                                {% if r.get('fecha_respuesta') %}
+                                    {{ r.fecha_respuesta_fmt }}
+                                {% else %}
+                                    Fecha no disponible
+                                {% endif %}
+                            </td>
                             <td class="text-center">
                                 <a href="{{ url_for('detalle_respuesta', id_respuesta=r.id_respuesta) }}"
                                     class="btn btn-sm btn-primary">
