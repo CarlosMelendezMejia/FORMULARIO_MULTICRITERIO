@@ -52,6 +52,16 @@
                     </tbody>
                 </table>
             </div>
+            <div class="d-flex justify-content-between my-3">
+                {% if page > 1 %}
+                <a href="{{ url_for('panel_admin', page=page-1) }}" class="btn btn-outline-primary">Anterior</a>
+                {% else %}
+                <span></span>
+                {% endif %}
+                {% if has_next %}
+                <a href="{{ url_for('panel_admin', page=page+1) }}" class="btn btn-outline-primary">Siguiente</a>
+                {% endif %}
+            </div>
             {% else %}
             <div class="alert alert-warning text-center">Aún no hay respuestas registradas.</div>
             {% endif %}
