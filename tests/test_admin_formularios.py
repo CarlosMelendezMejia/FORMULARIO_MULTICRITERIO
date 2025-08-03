@@ -10,10 +10,16 @@ import app as app_module
 app = app_module.app
 
 class DummyCursor:
-    def __init__(self):
+    def __init__(self, fetchone_results=None):
         self.queries = []
+        self.fetchone_results = fetchone_results or []
+
     def execute(self, query, params=None):
         self.queries.append((query, params))
+
+    def fetchone(self):
+        return self.fetchone_results.pop(0)
+
     def close(self):
         pass
 
@@ -29,8 +35,8 @@ class DummyConnection:
         pass
 
 
-def create_dummy(monkeypatch):
-    cursor = DummyCursor()
+def create_dummy(monkeypatch, fetchone_results=None):
+    cursor = DummyCursor(fetchone_results=fetchone_results)
     conn = DummyConnection(cursor)
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
@@ -63,6 +69,33 @@ def test_reiniciar_formularios(monkeypatch):
         ("DELETE FROM ponderacion_admin", None),
         ("DELETE FROM respuesta_detalle", None),
         ("DELETE FROM respuesta", None),
+    ]
+    assert conn.commit_called
+    assert app_module.RANKING_CACHE["data"] is None
+    assert app_module.RANKING_CACHE["incompletas"] is None
+    assert app_module.RANKING_CACHE["timestamp"] == 0
+
+
+def test_eliminar_formulario_invalida_cache(monkeypatch):
+    fetchone_results = [{"total": 0}]
+    cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
+
+    app_module.RANKING_CACHE["data"] = "cached"
+    app_module.RANKING_CACHE["incompletas"] = "cached"
+    app_module.RANKING_CACHE["timestamp"] = 999
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess["is_admin"] = True
+        resp = client.post("/admin/formularios/eliminar/1", data={"confirm": "yes"})
+        assert resp.status_code == 302
+        assert resp.headers["Location"].endswith("/admin/formularios")
+
+    assert cursor.queries == [
+        ("SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s", (1,)),
+        ("DELETE FROM respuesta WHERE id_formulario = %s", (1,)),
+        ("DELETE FROM asignacion WHERE id_formulario = %s", (1,)),
+        ("DELETE FROM formulario WHERE id = %s", (1,)),
     ]
     assert conn.commit_called
     assert app_module.RANKING_CACHE["data"] is None
