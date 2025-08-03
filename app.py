@@ -389,6 +389,20 @@ def eliminar_formulario(id):
     return redirect(url_for("administrar_formularios"))
 
 
+@app.route("/admin/formularios/reiniciar", methods=["POST"])
+def reiniciar_formularios():
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+
+    g.cursor.execute("DELETE FROM ponderacion_admin")
+    g.cursor.execute("DELETE FROM respuesta_detalle")
+    g.cursor.execute("DELETE FROM respuesta")
+    g.conn.commit()
+    invalidate_ranking_cache()
+    flash("Todos los formularios han sido reiniciados.")
+    return redirect(url_for("administrar_formularios"))
+
+
 @app.route("/admin/factores", methods=["GET", "POST"])
 def administrar_factores():
     if not session.get("is_admin"):
