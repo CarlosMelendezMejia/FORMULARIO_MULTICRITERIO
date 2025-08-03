@@ -167,11 +167,16 @@ h2::after {
   border: 1px dashed #dee2e6;
 }
 
-.action-buttons {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1.5rem;
+.navbar {
+  background-color: var(--color-claro-1) !important;
+}
+
+.navbar-nav .nav-link {
+  color: var(--color-primario-medio);
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--color-primario-oscuro);
 }
 
 /* Styles from templates/admin_login.html */
