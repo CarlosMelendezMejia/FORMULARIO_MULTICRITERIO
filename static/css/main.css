@@ -126,7 +126,11 @@ h2::after {
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   padding: 2.5rem;
-  margin: 2rem auto;
+  margin: 0 auto 2rem;
+}
+
+.admin-navbar {
+  margin-bottom: 2rem;
 }
 
 .table thead th {
