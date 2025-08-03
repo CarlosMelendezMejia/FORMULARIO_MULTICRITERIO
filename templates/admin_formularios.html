@@ -51,9 +51,12 @@
             {% endif %}
 
             <form method="POST" action="{{ url_for('administrar_formularios') }}" class="mt-4">
-                <div class="input-group mb-3">
-                    <input type="text" name="nombre" class="form-control" value="{{ nombre_defecto }}">
-                    <button class="btn btn-primary" type="submit">Agregar Formulario</button>
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="text" name="nombre" class="form-control" value="{{ default_name }}" aria-describedby="nombreHelp">
+                        <button class="btn btn-primary" type="submit">Agregar Formulario</button>
+                    </div>
+                    <div id="nombreHelp" class="form-text">Puedes cambiar este nombre antes de crear el formulario.</div>
                 </div>
             </form>
 

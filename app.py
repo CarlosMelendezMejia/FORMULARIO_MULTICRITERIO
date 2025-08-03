@@ -212,15 +212,25 @@ def administrar_formularios():
     if not session.get('is_admin'):
         return redirect(url_for('admin_login'))
 
+    # Obtener el próximo ID para sugerir un nombre por defecto
+    cursor.execute(
+        """
+        SELECT AUTO_INCREMENT AS siguiente_id
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'formulario'
+        """
+    )
+    siguiente_id = cursor.fetchone()["siguiente_id"]
+    default_name = f"Formulario {siguiente_id:02d}"
+
     if request.method == 'POST':
-        nombre = request.form.get('nombre', '').strip()
-        if nombre:
-            cursor.execute(
-                "INSERT INTO formulario (nombre) VALUES (%s)",
-                (nombre,),
-            )
-            conn.commit()
-            flash("Formulario creado correctamente.")
+        nombre = request.form.get('nombre', '').strip() or default_name
+        cursor.execute(
+            "INSERT INTO formulario (nombre) VALUES (%s)",
+            (nombre,),
+        )
+        conn.commit()
+        flash("Formulario creado correctamente.")
         return redirect(url_for('administrar_formularios'))
 
     cursor.execute(
@@ -234,14 +244,10 @@ def administrar_formularios():
     )
     formularios = cursor.fetchall()
 
-    cursor.execute("SELECT IFNULL(MAX(id), 0) + 1 AS siguiente_id FROM formulario")
-    siguiente_id = cursor.fetchone()["siguiente_id"]
-    nombre_defecto = f"Formulario {siguiente_id:02d}"
-
     return render_template(
         'admin_formularios.html',
         formularios=formularios,
-        nombre_defecto=nombre_defecto,
+        default_name=default_name,
     )
 
 
