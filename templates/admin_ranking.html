@@ -56,11 +56,17 @@
             <tr>
               <td>{{ loop.index }}</td>
               <td>{{ r.nombre }}</td>
-              <td>{{ '%.2f' | format(r.total or 0) }}</td>
+              <td>
+                {{ '%.2f' | format(r.total or 0) }}
+                {% if (r.total or 0) == 0 %}
+                <div class="text-danger">Faltan ponderaciones</div>
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
+        <p class="text-muted">Los factores con total 0 indican que faltan ponderaciones.</p>
       </div>
 
       <canvas id="rankingChart" class="mt-4"></canvas>

@@ -350,32 +350,27 @@ def vista_ranking():
     ponderaciones = cursor.fetchall()
     incompletas = [row["id_respuesta"] for row in ponderaciones if row["total"] < 10]
 
-    # Generar ranking excluyendo respuestas incompletas
-    ranking_query = (
-        """
-        SELECT f.nombre, SUM(p.peso_admin * rd.valor_usuario) AS total
-        FROM ponderacion_admin p
-        JOIN respuesta_detalle rd ON rd.id_respuesta = p.id_respuesta AND rd.id_factor = p.id_factor
-        JOIN factor f ON f.id = p.id_factor
-        """
-    )
+    # Generar ranking excluyendo respuestas incompletas e incluyendo factores sin ponderación
+    join_condition = "f.id = p.id_factor"
+    params = ()
     if incompletas:
         placeholders = ",".join(["%s"] * len(incompletas))
-        ranking_query += f" WHERE p.id_respuesta NOT IN ({placeholders})"
-        cursor.execute(
-            ranking_query + " GROUP BY f.id ORDER BY total DESC",
-            tuple(incompletas),
-        )
-    else:
-        cursor.execute(ranking_query + " GROUP BY f.id ORDER BY total DESC")
+        join_condition += f" AND p.id_respuesta NOT IN ({placeholders})"
+        params = tuple(incompletas)
+    ranking_query = f"""
+        SELECT f.nombre, SUM(COALESCE(p.peso_admin,0) * COALESCE(rd.valor_usuario,0)) AS total
+        FROM factor f
+        LEFT JOIN ponderacion_admin p ON {join_condition}
+        LEFT JOIN respuesta_detalle rd ON rd.id_respuesta = p.id_respuesta AND rd.id_factor = f.id
+        GROUP BY f.id ORDER BY total DESC
+        """
+    cursor.execute(ranking_query, params)
     ranking = cursor.fetchall()
 
-    # Determinar si no hay datos o si todos los totales son cero
+    # Determinar si no hay datos
     estado_ranking = None
     if not ranking:
         estado_ranking = "sin_datos"
-    elif all((row["total"] or 0) == 0 for row in ranking):
-        estado_ranking = "totales_cero"
 
     return render_template(
         'admin_ranking.html',
