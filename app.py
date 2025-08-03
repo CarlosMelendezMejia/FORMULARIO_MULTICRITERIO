@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, g
 import os
 import mysql.connector
 from collections import defaultdict
@@ -6,7 +6,7 @@ from decimal import Decimal, InvalidOperation
 from dotenv import load_dotenv
 load_dotenv()
 
-from db import get_connection, get_cursor
+from db import get_connection
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
@@ -15,9 +15,21 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 app = Flask(__name__)
 app.secret_key = 'clave-secreta-sencilla'
 
-# Conexión a la base de datos
-conn = get_connection()
-cursor = get_cursor(conn)
+
+@app.before_request
+def before_request():
+    g.conn = get_connection()
+    g.cursor = g.conn.cursor(dictionary=True)
+
+
+@app.teardown_appcontext
+def teardown_db(exception):
+    cursor = g.pop('cursor', None)
+    if cursor is not None:
+        cursor.close()
+    conn = g.pop('conn', None)
+    if conn is not None:
+        conn.close()
 
 
 @app.after_request
@@ -53,14 +65,14 @@ def formulario_redirect():
 @app.route('/formulario/<int:id_usuario>')
 def mostrar_formulario(id_usuario):
     # Obtener formularios asignados al usuario
-    cursor.execute("""
+    g.cursor.execute("""
         SELECT a.id_formulario, f.nombre AS nombre_formulario
         FROM asignacion a
         JOIN formulario f ON a.id_formulario = f.id
         WHERE a.id_usuario = %s
         ORDER BY a.id_formulario
     """, (id_usuario,))
-    asignaciones = cursor.fetchall()
+    asignaciones = g.cursor.fetchall()
 
     if not asignaciones:
         return "No se encontró un formulario asignado."
@@ -68,11 +80,11 @@ def mostrar_formulario(id_usuario):
     # Elegir el primer formulario sin respuesta previa o el primero disponible
     asignacion = None
     for a in asignaciones:
-        cursor.execute(
+        g.cursor.execute(
             "SELECT 1 FROM respuesta WHERE id_usuario = %s AND id_formulario = %s",
             (id_usuario, a["id_formulario"]),
         )
-        if not cursor.fetchone():
+        if not g.cursor.fetchone():
             asignacion = a
             break
     if asignacion is None:
@@ -81,21 +93,21 @@ def mostrar_formulario(id_usuario):
     id_formulario = asignacion['id_formulario']
 
     # Obtener factores
-    cursor.execute("SELECT * FROM factor")
-    factores = cursor.fetchall()
+    g.cursor.execute("SELECT * FROM factor")
+    factores = g.cursor.fetchall()
 
     # Obtener datos del usuario
-    cursor.execute("SELECT * FROM usuario WHERE id = %s", (id_usuario,))
-    usuario = cursor.fetchone()
+    g.cursor.execute("SELECT * FROM usuario WHERE id = %s", (id_usuario,))
+    usuario = g.cursor.fetchone()
 
     # Obtener respuestas anteriores (si existen)
-    cursor.execute("""
+    g.cursor.execute("""
         SELECT rd.id_factor, rd.valor_usuario
         FROM respuesta r
         JOIN respuesta_detalle rd ON r.id = rd.id_respuesta
         WHERE r.id_usuario = %s AND r.id_formulario = %s
     """, (id_usuario, id_formulario))
-    respuestas_previas = cursor.fetchall()
+    respuestas_previas = g.cursor.fetchall()
 
     # Convertir a diccionario {id_factor: valor}
     respuestas_dict = {r['id_factor']: r['valor_usuario'] for r in respuestas_previas}
@@ -126,7 +138,7 @@ def guardar_respuesta():
     dependencia = request.form['dependencia'].strip()
 
     # 1. Actualizar los datos del usuario
-    cursor.execute("""
+    g.cursor.execute("""
         UPDATE usuario
         SET nombre = %s,
             apellidos = %s,
@@ -134,22 +146,22 @@ def guardar_respuesta():
             dependencia = %s
         WHERE id = %s
     """, (nombre, apellidos, cargo, dependencia, id_usuario))
-    conn.commit()
+    g.conn.commit()
 
     # 2. Verificar si ya hay una respuesta existente → si sí, eliminarla
-    cursor.execute("""
+    g.cursor.execute("""
         SELECT id FROM respuesta
         WHERE id_usuario = %s AND id_formulario = %s
     """, (id_usuario, id_formulario))
-    anterior = cursor.fetchone()
+    anterior = g.cursor.fetchone()
 
     if anterior:
         id_anterior = anterior['id']
         # Eliminar ponderaciones si existen
-        cursor.execute("DELETE FROM ponderacion_admin WHERE id_respuesta = %s", (id_anterior,))
-        cursor.execute("DELETE FROM respuesta_detalle WHERE id_respuesta = %s", (id_anterior,))
-        cursor.execute("DELETE FROM respuesta WHERE id = %s", (id_anterior,))
-        conn.commit()
+        g.cursor.execute("DELETE FROM ponderacion_admin WHERE id_respuesta = %s", (id_anterior,))
+        g.cursor.execute("DELETE FROM respuesta_detalle WHERE id_respuesta = %s", (id_anterior,))
+        g.cursor.execute("DELETE FROM respuesta WHERE id = %s", (id_anterior,))
+        g.conn.commit()
 
     # 3. Leer los 10 valores únicos de los factores
     valores = []
@@ -168,14 +180,14 @@ def guardar_respuesta():
 
     # 4. Insertar nueva respuesta
     try:
-        cursor.execute("""
+        g.cursor.execute("""
             INSERT INTO respuesta (id_usuario, id_formulario)
             VALUES (%s, %s)
         """, (id_usuario, id_formulario))
-        conn.commit()
-        id_respuesta = cursor.lastrowid
+        g.conn.commit()
+        id_respuesta = g.cursor.lastrowid
     except mysql.connector.IntegrityError:
-        conn.rollback()
+        g.conn.rollback()
         flash("Ya se registró una respuesta para este formulario.")
         return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
 
@@ -184,11 +196,11 @@ def guardar_respuesta():
         if not 1 <= valor <= 10:
             flash("Cada valor debe estar entre 1 y 10.")
             return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
-        cursor.execute("""
+        g.cursor.execute("""
             INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
             VALUES (%s, %s, %s)
         """, (id_respuesta, factor_id, valor))
-    conn.commit()
+    g.conn.commit()
     if exit_redirect:
         return redirect(url_for('index'))
     return render_template('confirmacion.html')
@@ -220,14 +232,14 @@ def admin_logout():
 def panel_admin():
     if not session.get('is_admin'):
         return redirect(url_for('admin_login'))
-    cursor.execute("""
+    g.cursor.execute("""
         SELECT r.id AS id_respuesta, u.nombre, u.apellidos, f.nombre AS formulario, r.fecha_respuesta
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id
         ORDER BY r.fecha_respuesta DESC
     """)
-    respuestas = cursor.fetchall()
+    respuestas = g.cursor.fetchall()
 
     return render_template('admin.html', respuestas=respuestas)
 
@@ -238,27 +250,27 @@ def administrar_formularios():
         return redirect(url_for('admin_login'))
 
     # Obtener el próximo ID para sugerir un nombre por defecto
-    cursor.execute(
+    g.cursor.execute(
         """
         SELECT AUTO_INCREMENT AS siguiente_id
         FROM information_schema.TABLES
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'formulario'
         """
     )
-    siguiente_id = cursor.fetchone()["siguiente_id"]
+    siguiente_id = g.cursor.fetchone()["siguiente_id"]
     default_name = f"Formulario {siguiente_id:02d}"
 
     if request.method == 'POST':
         nombre = request.form.get('nombre', '').strip() or default_name
-        cursor.execute(
+        g.cursor.execute(
             "INSERT INTO formulario (nombre) VALUES (%s)",
             (nombre,),
         )
-        conn.commit()
+        g.conn.commit()
         flash("Formulario creado correctamente.")
         return redirect(url_for('administrar_formularios'))
 
-    cursor.execute(
+    g.cursor.execute(
         """
         SELECT f.id, f.nombre, COUNT(r.id) AS respuestas
         FROM formulario f
@@ -267,7 +279,7 @@ def administrar_formularios():
         ORDER BY f.id
         """
     )
-    formularios = cursor.fetchall()
+    formularios = g.cursor.fetchall()
 
     return render_template(
         'admin_formularios.html',
@@ -281,11 +293,11 @@ def eliminar_formulario(id):
     if not session.get('is_admin'):
         return redirect(url_for('admin_login'))
 
-    cursor.execute(
+    g.cursor.execute(
         "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s",
         (id,),
     )
-    total_respuestas = cursor.fetchone()["total"]
+    total_respuestas = g.cursor.fetchone()["total"]
 
     confirm = request.form.get('confirm')
     expected = request.form.get('expected_count')
@@ -303,19 +315,19 @@ def eliminar_formulario(id):
         except (TypeError, ValueError):
             expected = None
         if expected is not None:
-            cursor.execute(
+            g.cursor.execute(
                 "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s",
                 (id,),
             )
-            total_actual = cursor.fetchone()["total"]
+            total_actual = g.cursor.fetchone()["total"]
             if total_actual != expected:
                 flash("El número de respuestas cambió; operación cancelada.")
                 return redirect(url_for('administrar_formularios'))
 
-        cursor.execute("DELETE FROM respuesta WHERE id_formulario = %s", (id,))
-        cursor.execute("DELETE FROM asignacion WHERE id_formulario = %s", (id,))
-        cursor.execute("DELETE FROM formulario WHERE id = %s", (id,))
-        conn.commit()
+        g.cursor.execute("DELETE FROM respuesta WHERE id_formulario = %s", (id,))
+        g.cursor.execute("DELETE FROM asignacion WHERE id_formulario = %s", (id,))
+        g.cursor.execute("DELETE FROM formulario WHERE id = %s", (id,))
+        g.conn.commit()
         flash("Formulario eliminado correctamente.")
         return redirect(url_for('administrar_formularios'))
 
@@ -332,16 +344,16 @@ def administrar_factores():
         for i in range(1, 11):
             nombre = request.form.get(f'nombre_{i}')
             descripcion = request.form.get(f'descripcion_{i}')
-            cursor.execute(
+            g.cursor.execute(
                 "UPDATE factor SET nombre=%s, descripcion=%s WHERE id=%s",
                 (nombre, descripcion, i)
             )
-        conn.commit()
+        g.conn.commit()
         flash("Factores actualizados correctamente.")
         return redirect(url_for('administrar_factores'))
 
-    cursor.execute("SELECT * FROM factor ORDER BY id")
-    factores = cursor.fetchall()
+    g.cursor.execute("SELECT * FROM factor ORDER BY id")
+    factores = g.cursor.fetchall()
     return render_template('admin_factores.html', factores=factores)
 
 # ==============================
@@ -353,17 +365,17 @@ def detalle_respuesta(id_respuesta):
     if not session.get('is_admin'):
         return redirect(url_for('admin_login'))
     # Datos generales
-    cursor.execute("""
+    g.cursor.execute("""
         SELECT r.id AS id_respuesta, u.nombre, u.apellidos, f.nombre AS formulario
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id
         WHERE r.id = %s
     """, (id_respuesta,))
-    respuesta = cursor.fetchone()
+    respuesta = g.cursor.fetchone()
 
     # Factores con valor del usuario + ponderación previa
-    cursor.execute("""
+    g.cursor.execute("""
         SELECT rd.id_factor, fa.nombre, fa.descripcion, rd.valor_usuario,
                COALESCE(pa.peso_admin, '') AS peso_admin
         FROM respuesta_detalle rd
@@ -373,10 +385,10 @@ def detalle_respuesta(id_respuesta):
         WHERE rd.id_respuesta = %s
         ORDER BY fa.id
     """, (id_respuesta,))
-    factores = cursor.fetchall()
+    factores = g.cursor.fetchall()
 
     # Ranking acumulado (de todas las ponderaciones globales)
-    cursor.execute("""
+    g.cursor.execute("""
         SELECT f.nombre, SUM(p.peso_admin * rd.valor_usuario) AS total
         FROM ponderacion_admin p
         JOIN respuesta_detalle rd ON rd.id_respuesta = p.id_respuesta AND rd.id_factor = p.id_factor
@@ -384,7 +396,7 @@ def detalle_respuesta(id_respuesta):
         GROUP BY f.id
         ORDER BY total DESC
     """)
-    ranking = cursor.fetchall()
+    ranking = g.cursor.fetchall()
 
     return render_template(
         'admin_detalle.html',
@@ -427,12 +439,12 @@ def guardar_ponderacion():
 
     for id_respuesta, id_factor, peso in ponderaciones:
         # UPSERT (actualizar si existe, insertar si no)
-        cursor.execute("""
+        g.cursor.execute("""
             INSERT INTO ponderacion_admin (id_respuesta, id_factor, peso_admin)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE peso_admin = VALUES(peso_admin)
         """, (id_respuesta, id_factor, peso))
-    conn.commit()
+    g.conn.commit()
 
     flash("Ponderaciones guardadas correctamente.")
     return redirect(url_for('detalle_respuesta', id_respuesta=id_respuesta))
@@ -446,16 +458,16 @@ def vista_ranking():
     if not session.get('is_admin'):
         return redirect(url_for('admin_login'))
     # Contar formularios asignados y formularios con respuesta
-    cursor.execute("SELECT COUNT(*) AS total FROM asignacion")
-    total_asignados = cursor.fetchone()["total"]
+    g.cursor.execute("SELECT COUNT(*) AS total FROM asignacion")
+    total_asignados = g.cursor.fetchone()["total"]
 
-    cursor.execute("SELECT COUNT(*) AS total FROM respuesta")
-    total_respuestas = cursor.fetchone()["total"]
+    g.cursor.execute("SELECT COUNT(*) AS total FROM respuesta")
+    total_respuestas = g.cursor.fetchone()["total"]
 
     pendientes = total_respuestas < total_asignados
 
     # Contar ponderaciones por respuesta para detectar incompletas
-    cursor.execute(
+    g.cursor.execute(
         """
         SELECT r.id AS id_respuesta, COUNT(p.id_factor) AS total
         FROM respuesta r
@@ -463,7 +475,7 @@ def vista_ranking():
         GROUP BY r.id
         """
     )
-    ponderaciones = cursor.fetchall()
+    ponderaciones = g.cursor.fetchall()
     incompletas = [row["id_respuesta"] for row in ponderaciones if row["total"] < 10]
 
     # Generar ranking excluyendo respuestas incompletas e incluyendo factores sin ponderación
@@ -480,8 +492,8 @@ def vista_ranking():
         LEFT JOIN respuesta_detalle rd ON rd.id_respuesta = p.id_respuesta AND rd.id_factor = f.id
         GROUP BY f.id ORDER BY total DESC
         """
-    cursor.execute(ranking_query, params)
-    ranking = cursor.fetchall()
+    g.cursor.execute(ranking_query, params)
+    ranking = g.cursor.fetchall()
 
     # Determinar si no hay datos
     estado_ranking = None
