@@ -52,17 +52,31 @@ def formulario_redirect():
 
 @app.route('/formulario/<int:id_usuario>')
 def mostrar_formulario(id_usuario):
-    # Obtener el formulario asignado
+    # Obtener formularios asignados al usuario
     cursor.execute("""
         SELECT a.id_formulario, f.nombre AS nombre_formulario
         FROM asignacion a
         JOIN formulario f ON a.id_formulario = f.id
         WHERE a.id_usuario = %s
+        ORDER BY a.id_formulario
     """, (id_usuario,))
-    asignacion = cursor.fetchone()
+    asignaciones = cursor.fetchall()
 
-    if not asignacion:
+    if not asignaciones:
         return "No se encontró un formulario asignado."
+
+    # Elegir el primer formulario sin respuesta previa o el primero disponible
+    asignacion = None
+    for a in asignaciones:
+        cursor.execute(
+            "SELECT 1 FROM respuesta WHERE id_usuario = %s AND id_formulario = %s",
+            (id_usuario, a["id_formulario"]),
+        )
+        if not cursor.fetchone():
+            asignacion = a
+            break
+    if asignacion is None:
+        asignacion = asignaciones[0]
 
     id_formulario = asignacion['id_formulario']
 
