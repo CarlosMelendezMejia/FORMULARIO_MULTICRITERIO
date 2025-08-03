@@ -156,6 +156,9 @@ def guardar_respuesta():
     for i in range(1, 11):
         factor_id = int(request.form[f'factor_id_{i}'])
         valor = int(request.form[f'valor_{i}'])
+        if not 1 <= valor <= 10:
+            flash("Cada valor debe estar entre 1 y 10.")
+            return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
         valores.append((factor_id, valor))
 
     usados = [v[1] for v in valores]
@@ -173,6 +176,9 @@ def guardar_respuesta():
 
     # 5. Insertar detalle de factores
     for factor_id, valor in valores:
+        if not 1 <= valor <= 10:
+            flash("Cada valor debe estar entre 1 y 10.")
+            return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
         cursor.execute("""
             INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
             VALUES (%s, %s, %s)
