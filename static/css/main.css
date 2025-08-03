@@ -724,3 +724,25 @@ input[type="number"].ponderacion:focus {
 .btn-acento:hover .bi-arrow-repeat {
     transform: rotate(360deg);
 }
+
+.login-logos {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.login-logos img {
+    background: transparent;
+    border: none;
+    height: 60px;
+}
+
+@media (max-width: 576px) {
+    .login-logos {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+    }
+}
