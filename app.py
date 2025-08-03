@@ -370,6 +370,13 @@ def vista_ranking():
         cursor.execute(ranking_query + " GROUP BY f.id ORDER BY total DESC")
     ranking = cursor.fetchall()
 
+    # Determinar si no hay datos o si todos los totales son cero
+    estado_ranking = None
+    if not ranking:
+        estado_ranking = "sin_datos"
+    elif all((row["total"] or 0) == 0 for row in ranking):
+        estado_ranking = "totales_cero"
+
     return render_template(
         'admin_ranking.html',
         ranking=ranking,
@@ -377,6 +384,7 @@ def vista_ranking():
         total_asignados=total_asignados,
         total_respuestas=total_respuestas,
         incompletas=incompletas,
+        estado_ranking=estado_ranking,
     )
 
 
