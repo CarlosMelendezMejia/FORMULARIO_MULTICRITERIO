@@ -313,6 +313,15 @@ def guardar_ponderacion():
 def vista_ranking():
     if not session.get('is_admin'):
         return redirect(url_for('admin_login'))
+    # Contar formularios asignados y formularios con respuesta
+    cursor.execute("SELECT COUNT(*) AS total FROM asignacion")
+    total_asignados = cursor.fetchone()["total"]
+
+    cursor.execute("SELECT COUNT(*) AS total FROM respuesta")
+    total_respuestas = cursor.fetchone()["total"]
+
+    pendientes = total_respuestas < total_asignados
+
     cursor.execute("""
         SELECT f.nombre, SUM(p.peso_admin * rd.valor_usuario) AS total
         FROM ponderacion_admin p
@@ -322,7 +331,14 @@ def vista_ranking():
         ORDER BY total DESC
     """)
     ranking = cursor.fetchall()
-    return render_template('admin_ranking.html', ranking=ranking)
+
+    return render_template(
+        'admin_ranking.html',
+        ranking=ranking,
+        pendientes=pendientes,
+        total_asignados=total_asignados,
+        total_respuestas=total_respuestas,
+    )
 
 
 # ==============================
