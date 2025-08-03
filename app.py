@@ -340,13 +340,15 @@ def administrar_factores():
         return redirect(url_for('admin_login'))
 
     if request.method == 'POST':
+        datos = []
         for i in range(1, 11):
             nombre = request.form.get(f'nombre_{i}')
             descripcion = request.form.get(f'descripcion_{i}')
-            g.cursor.execute(
-                "UPDATE factor SET nombre=%s, descripcion=%s WHERE id=%s",
-                (nombre, descripcion, i)
-            )
+            datos.append((nombre, descripcion, i))
+        g.cursor.executemany(
+            "UPDATE factor SET nombre=%s, descripcion=%s WHERE id=%s",
+            datos
+        )
         g.conn.commit()
         flash("Factores actualizados correctamente.")
         return redirect(url_for('administrar_factores'))
