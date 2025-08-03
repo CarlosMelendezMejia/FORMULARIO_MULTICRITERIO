@@ -245,6 +245,53 @@ def administrar_formularios():
     )
 
 
+@app.route('/admin/formularios/eliminar/<int:id>', methods=['POST'])
+def eliminar_formulario(id):
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
+
+    cursor.execute(
+        "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s",
+        (id,),
+    )
+    total_respuestas = cursor.fetchone()["total"]
+
+    confirm = request.form.get('confirm')
+    expected = request.form.get('expected_count')
+
+    if total_respuestas > 0 and confirm != 'yes':
+        return render_template(
+            'confirmar_eliminacion_formulario.html',
+            id_formulario=id,
+            respuestas=total_respuestas,
+        )
+
+    if confirm == 'yes':
+        try:
+            expected = int(expected)
+        except (TypeError, ValueError):
+            expected = None
+        if expected is not None:
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s",
+                (id,),
+            )
+            total_actual = cursor.fetchone()["total"]
+            if total_actual != expected:
+                flash("El número de respuestas cambió; operación cancelada.")
+                return redirect(url_for('administrar_formularios'))
+
+        cursor.execute("DELETE FROM respuesta WHERE id_formulario = %s", (id,))
+        cursor.execute("DELETE FROM asignacion WHERE id_formulario = %s", (id,))
+        cursor.execute("DELETE FROM formulario WHERE id = %s", (id,))
+        conn.commit()
+        flash("Formulario eliminado correctamente.")
+        return redirect(url_for('administrar_formularios'))
+
+    flash("Eliminación cancelada.")
+    return redirect(url_for('administrar_formularios'))
+
+
 @app.route('/admin/factores', methods=['GET', 'POST'])
 def administrar_factores():
     if not session.get('is_admin'):

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmar Eliminación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+    <div class="container py-5">
+        <div class="admin-container text-center">
+            <div class="logo-container">
+                <div class="logo-placeholder">Logo 1</div>
+                <div class="logo-placeholder">Logo 2</div>
+                <div class="logo-placeholder">Logo 3</div>
+            </div>
+
+            <h2>Confirmar eliminación</h2>
+            <p>Se encontraron {{ respuestas }} respuestas asociadas a este formulario.
+                ¿Deseas eliminarlo de todos modos?</p>
+
+            <form method="POST" action="{{ url_for('eliminar_formulario', id=id_formulario) }}" class="d-inline">
+                <input type="hidden" name="confirm" value="yes">
+                <input type="hidden" name="expected_count" value="{{ respuestas }}">
+                <button type="submit" class="btn btn-danger">Eliminar de todos modos</button>
+            </form>
+            <a href="{{ url_for('administrar_formularios') }}" class="btn btn-secondary ms-2">Cancelar</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
