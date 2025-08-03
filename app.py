@@ -207,6 +207,44 @@ def panel_admin():
     return render_template('admin.html', respuestas=respuestas)
 
 
+@app.route('/admin/formularios', methods=['GET', 'POST'])
+def administrar_formularios():
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        nombre = request.form.get('nombre', '').strip()
+        if nombre:
+            cursor.execute(
+                "INSERT INTO formulario (nombre) VALUES (%s)",
+                (nombre,),
+            )
+            conn.commit()
+            flash("Formulario creado correctamente.")
+        return redirect(url_for('administrar_formularios'))
+
+    cursor.execute(
+        """
+        SELECT f.id, f.nombre, COUNT(r.id) AS respuestas
+        FROM formulario f
+        LEFT JOIN respuesta r ON r.id_formulario = f.id
+        GROUP BY f.id, f.nombre
+        ORDER BY f.id
+        """
+    )
+    formularios = cursor.fetchall()
+
+    cursor.execute("SELECT IFNULL(MAX(id), 0) + 1 AS siguiente_id FROM formulario")
+    siguiente_id = cursor.fetchone()["siguiente_id"]
+    nombre_defecto = f"Formulario {siguiente_id:02d}"
+
+    return render_template(
+        'admin_formularios.html',
+        formularios=formularios,
+        nombre_defecto=nombre_defecto,
+    )
+
+
 @app.route('/admin/factores', methods=['GET', 'POST'])
 def administrar_factores():
     if not session.get('is_admin'):
