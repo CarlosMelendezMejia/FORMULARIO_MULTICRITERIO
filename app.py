@@ -102,6 +102,7 @@ def mostrar_formulario(id_usuario):
 def guardar_respuesta():
     id_usuario = int(request.form['usuario_id'])
     id_formulario = int(request.form['formulario_id'])
+    exit_redirect = request.form.get('exit_redirect')
 
     # Datos personales
     nombre = request.form['nombre'].strip()
@@ -162,7 +163,8 @@ def guardar_respuesta():
             VALUES (%s, %s, %s)
         """, (id_respuesta, factor_id, valor))
     conn.commit()
-
+    if exit_redirect:
+        return redirect(url_for('index'))
     return render_template('confirmacion.html')
 
 
