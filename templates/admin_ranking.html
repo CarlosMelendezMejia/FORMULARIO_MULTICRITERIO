@@ -39,7 +39,9 @@
       {% if estado_ranking %}
       <div class="alert alert-info" role="alert">No hay ponderaciones registradas</div>
       <div class="text-center mt-4">
-        <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">Volver al Panel</a>
+        <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Volver al Panel
+        </a>
       </div>
       {% else %}
       <div class="table-responsive">
@@ -72,8 +74,12 @@
       <canvas id="rankingChart" class="mt-4"></canvas>
 
       <div class="text-center mt-4">
-        <button id="downloadPNG" class="btn btn-primary me-2">Descargar como Imagen (PDF)</button>
-        <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">Volver al Panel</a>
+        <button id="downloadPNG" class="btn btn-primary me-2">
+          <i class="bi bi-download me-1"></i>Descargar como Imagen (PDF)
+        </button>
+        <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Volver al Panel
+        </a>
       </div>
       {% endif %}
     </div>
