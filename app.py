@@ -231,16 +231,28 @@ def admin_logout():
 def panel_admin():
     if not session.get('is_admin'):
         return redirect(url_for('admin_login'))
-    g.cursor.execute("""
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    offset = (page - 1) * per_page
+    g.cursor.execute(
+        """
         SELECT r.id AS id_respuesta, u.nombre, u.apellidos, f.nombre AS formulario, r.fecha_respuesta
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id
         ORDER BY r.fecha_respuesta DESC
-    """)
+        LIMIT %s OFFSET %s
+        """,
+        (per_page + 1, offset),
+    )
     respuestas = g.cursor.fetchall()
+    has_next = len(respuestas) > per_page
+    if has_next:
+        respuestas = respuestas[:-1]
 
-    return render_template('admin.html', respuestas=respuestas)
+    return render_template(
+        'admin.html', respuestas=respuestas, page=page, has_next=has_next
+    )
 
 
 @app.route('/admin/formularios', methods=['GET', 'POST'])
