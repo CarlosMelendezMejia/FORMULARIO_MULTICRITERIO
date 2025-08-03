@@ -397,6 +397,7 @@ def eliminar_formulario(id):
         g.cursor.execute("DELETE FROM asignacion WHERE id_formulario = %s", (id,))
         g.cursor.execute("DELETE FROM formulario WHERE id = %s", (id,))
         g.conn.commit()
+        invalidate_ranking_cache()
         flash("Formulario eliminado correctamente.")
         return redirect(url_for("administrar_formularios"))
 
