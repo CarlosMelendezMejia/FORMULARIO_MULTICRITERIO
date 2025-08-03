@@ -5,6 +5,7 @@ from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 import time
 from dotenv import load_dotenv
+import bleach
 
 load_dotenv()
 
@@ -15,6 +16,11 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 app = Flask(__name__)
 app.secret_key = "clave-secreta-sencilla"
+
+
+def sanitize(texto: str) -> str:
+    """Sanitize user-provided text by stripping HTML tags and scripts."""
+    return bleach.clean(texto or "", tags=[], attributes={}, strip=True)
 
 # Cache sencillo para almacenar el ranking de factores
 RANKING_CACHE = {"data": None, "incompletas": None, "timestamp": 0}
@@ -142,10 +148,10 @@ def guardar_respuesta():
     exit_redirect = request.form.get("exit_redirect")
 
     # Datos personales
-    nombre = request.form["nombre"].strip()
-    apellidos = request.form["apellidos"].strip()
-    cargo = request.form["cargo"].strip()
-    dependencia = request.form["dependencia"].strip()
+    nombre = sanitize(request.form["nombre"].strip())
+    apellidos = sanitize(request.form["apellidos"].strip())
+    cargo = sanitize(request.form["cargo"].strip())
+    dependencia = sanitize(request.form["dependencia"].strip())
 
     # 1. Actualizar los datos del usuario
     g.cursor.execute(
