@@ -64,33 +64,32 @@ def formulario_redirect():
 
 @app.route('/formulario/<int:id_usuario>')
 def mostrar_formulario(id_usuario):
-    # Obtener formularios asignados al usuario
-    g.cursor.execute("""
+    """Muestra el formulario asignado al usuario.
+
+    Se selecciona directamente el primer formulario asignado que no tenga
+    respuestas previas. Si todos los formularios ya tienen respuesta, se
+    elige el primero asignado.
+    """
+
+    g.cursor.execute(
+        """
         SELECT a.id_formulario, f.nombre AS nombre_formulario
         FROM asignacion a
         JOIN formulario f ON a.id_formulario = f.id
+        LEFT JOIN respuesta r
+            ON r.id_usuario = a.id_usuario AND r.id_formulario = a.id_formulario
         WHERE a.id_usuario = %s
-        ORDER BY a.id_formulario
-    """, (id_usuario,))
-    asignaciones = g.cursor.fetchall()
+        ORDER BY r.id IS NOT NULL, a.id_formulario
+        LIMIT 1
+        """,
+        (id_usuario,),
+    )
+    asignacion = g.cursor.fetchone()
 
-    if not asignaciones:
+    if not asignacion:
         return "No se encontró un formulario asignado."
 
-    # Elegir el primer formulario sin respuesta previa o el primero disponible
-    asignacion = None
-    for a in asignaciones:
-        g.cursor.execute(
-            "SELECT 1 FROM respuesta WHERE id_usuario = %s AND id_formulario = %s",
-            (id_usuario, a["id_formulario"]),
-        )
-        if not g.cursor.fetchone():
-            asignacion = a
-            break
-    if asignacion is None:
-        asignacion = asignaciones[0]
-
-    id_formulario = asignacion['id_formulario']
+    id_formulario = asignacion["id_formulario"]
 
     # Obtener factores
     g.cursor.execute("SELECT * FROM factor")
