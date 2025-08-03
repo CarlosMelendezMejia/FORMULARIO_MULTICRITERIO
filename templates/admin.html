@@ -25,7 +25,25 @@
                     <img src="{{ url_for('static', filename='img/logo_planeacion.png') }}" alt="Logo Planeación">
                 </div>
             </div>
-            
+
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+              <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#adminNav" aria-controls="adminNav" aria-expanded="false"
+                        aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="adminNav">
+                  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('administrar_factores') }}"><i class="bi bi-pencil-square me-1"></i>Editar Factores</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('administrar_formularios') }}"><i class="bi bi-ui-checks-grid me-1"></i>Administrar Formularios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('vista_ranking') }}"><i class="bi bi-bar-chart-line me-1"></i>Ver Ranking Global</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_logout') }}"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></li>
+                  </ul>
+                </div>
+              </div>
+            </nav>
+
             <h2>Panel del Administrador</h2>
 
             {% if respuestas %}
@@ -79,21 +97,6 @@
             {% else %}
             <div class="alert alert-warning text-center">Aún no hay respuestas registradas.</div>
             {% endif %}
-            
-            <div class="action-buttons">
-                <a href="{{ url_for('administrar_factores') }}" class="btn btn-outline-primary">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Factores
-                </a>
-                <a href="{{ url_for('administrar_formularios') }}" class="btn btn-outline-primary">
-                    <i class="bi bi-ui-checks-grid me-1"></i>Administrar Formularios
-                </a>
-                <a href="{{ url_for('vista_ranking') }}" class="btn btn-outline-primary">
-                    <i class="bi bi-bar-chart-line me-1"></i>Ver Ranking Global
-                </a>
-                <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión
-                </a>
-            </div>
         </div>
     </div>
 
