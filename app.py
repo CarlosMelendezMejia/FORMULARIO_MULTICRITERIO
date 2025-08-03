@@ -322,14 +322,36 @@ def vista_ranking():
 
     pendientes = total_respuestas < total_asignados
 
-    cursor.execute("""
+    # Contar ponderaciones por respuesta para detectar incompletas
+    cursor.execute(
+        """
+        SELECT r.id AS id_respuesta, COUNT(p.id_factor) AS total
+        FROM respuesta r
+        LEFT JOIN ponderacion_admin p ON r.id = p.id_respuesta
+        GROUP BY r.id
+        """
+    )
+    ponderaciones = cursor.fetchall()
+    incompletas = [row["id_respuesta"] for row in ponderaciones if row["total"] < 10]
+
+    # Generar ranking excluyendo respuestas incompletas
+    ranking_query = (
+        """
         SELECT f.nombre, SUM(p.peso_admin * rd.valor_usuario) AS total
         FROM ponderacion_admin p
         JOIN respuesta_detalle rd ON rd.id_respuesta = p.id_respuesta AND rd.id_factor = p.id_factor
         JOIN factor f ON f.id = p.id_factor
-        GROUP BY f.id
-        ORDER BY total DESC
-    """)
+        """
+    )
+    if incompletas:
+        placeholders = ",".join(["%s"] * len(incompletas))
+        ranking_query += f" WHERE p.id_respuesta NOT IN ({placeholders})"
+        cursor.execute(
+            ranking_query + " GROUP BY f.id ORDER BY total DESC",
+            tuple(incompletas),
+        )
+    else:
+        cursor.execute(ranking_query + " GROUP BY f.id ORDER BY total DESC")
     ranking = cursor.fetchall()
 
     return render_template(
@@ -338,6 +360,7 @@ def vista_ranking():
         pendientes=pendientes,
         total_asignados=total_asignados,
         total_respuestas=total_respuestas,
+        incompletas=incompletas,
     )
 
 
