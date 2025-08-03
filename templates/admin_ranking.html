@@ -24,6 +24,12 @@
 
       <h3>Ranking Global de Factores</h3>
 
+      {% if pendientes %}
+      <div class="alert alert-warning" role="alert">
+        Faltan formularios por contestar; el ranking es parcial.
+      </div>
+      {% endif %}
+
       <div class="table-responsive">
         <table class="table table-bordered table-hover text-center">
           <thead>
