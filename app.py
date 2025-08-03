@@ -191,14 +191,14 @@ def guardar_respuesta():
         return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
 
     # 5. Insertar detalle de factores
-    for factor_id, valor in valores:
-        if not 1 <= valor <= 10:
-            flash("Cada valor debe estar entre 1 y 10.")
-            return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
-        g.cursor.execute("""
+    detalles = [(id_respuesta, factor_id, valor) for factor_id, valor in valores]
+    g.cursor.executemany(
+        """
             INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
             VALUES (%s, %s, %s)
-        """, (id_respuesta, factor_id, valor))
+        """,
+        detalles,
+    )
     g.conn.commit()
     if exit_redirect:
         return redirect(url_for('index'))
@@ -436,13 +436,15 @@ def guardar_ponderacion():
         id_factor = key.split('_')[1]
         ponderaciones.append((id_respuesta, id_factor, float(peso)))
 
-    for id_respuesta, id_factor, peso in ponderaciones:
-        # UPSERT (actualizar si existe, insertar si no)
-        g.cursor.execute("""
-            INSERT INTO ponderacion_admin (id_respuesta, id_factor, peso_admin)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE peso_admin = VALUES(peso_admin)
-        """, (id_respuesta, id_factor, peso))
+    if ponderaciones:
+        g.cursor.executemany(
+            """
+                INSERT INTO ponderacion_admin (id_respuesta, id_factor, peso_admin)
+                VALUES (%s, %s, %s)
+                ON DUPLICATE KEY UPDATE peso_admin = VALUES(peso_admin)
+            """,
+            ponderaciones,
+        )
     g.conn.commit()
 
     flash("Ponderaciones guardadas correctamente.")
