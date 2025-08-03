@@ -160,43 +160,7 @@ def guardar_respuesta():
     cargo = sanitize(request.form["cargo"].strip())
     dependencia = sanitize(request.form["dependencia"].strip())
 
-    # 1. Actualizar los datos del usuario
-    g.cursor.execute(
-        """
-        UPDATE usuario
-        SET nombre = %s,
-            apellidos = %s,
-            cargo = %s,
-            dependencia = %s
-        WHERE id = %s
-    """,
-        (nombre, apellidos, cargo, dependencia, id_usuario),
-    )
-    g.conn.commit()
-
-    # 2. Verificar si ya hay una respuesta existente → si sí, eliminarla
-    g.cursor.execute(
-        """
-        SELECT id FROM respuesta
-        WHERE id_usuario = %s AND id_formulario = %s
-    """,
-        (id_usuario, id_formulario),
-    )
-    anterior = g.cursor.fetchone()
-
-    if anterior:
-        id_anterior = anterior["id"]
-        # Eliminar ponderaciones si existen
-        g.cursor.execute(
-            "DELETE FROM ponderacion_admin WHERE id_respuesta = %s", (id_anterior,)
-        )
-        g.cursor.execute(
-            "DELETE FROM respuesta_detalle WHERE id_respuesta = %s", (id_anterior,)
-        )
-        g.cursor.execute("DELETE FROM respuesta WHERE id = %s", (id_anterior,))
-        g.conn.commit()
-
-    # 3. Leer los 10 valores únicos de los factores
+    # 1. Leer los 10 valores únicos de los factores
     valores = []
     try:
         for i in range(1, 11):
@@ -220,8 +184,45 @@ def guardar_respuesta():
         flash("Cada valor del 1 al 10 debe ser único. No se permiten duplicados.")
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
-    # 4. Insertar nueva respuesta
+    # 2. Guardar información en la base de datos dentro de una transacción
     try:
+        g.conn.start_transaction()
+
+        # Actualizar los datos del usuario
+        g.cursor.execute(
+            """
+            UPDATE usuario
+            SET nombre = %s,
+                apellidos = %s,
+                cargo = %s,
+                dependencia = %s
+            WHERE id = %s
+        """,
+            (nombre, apellidos, cargo, dependencia, id_usuario),
+        )
+
+        # Verificar si ya hay una respuesta existente → si sí, eliminarla
+        g.cursor.execute(
+            """
+            SELECT id FROM respuesta
+            WHERE id_usuario = %s AND id_formulario = %s
+        """,
+            (id_usuario, id_formulario),
+        )
+        anterior = g.cursor.fetchone()
+
+        if anterior:
+            id_anterior = anterior["id"]
+            # Eliminar ponderaciones si existen
+            g.cursor.execute(
+                "DELETE FROM ponderacion_admin WHERE id_respuesta = %s", (id_anterior,)
+            )
+            g.cursor.execute(
+                "DELETE FROM respuesta_detalle WHERE id_respuesta = %s", (id_anterior,)
+            )
+            g.cursor.execute("DELETE FROM respuesta WHERE id = %s", (id_anterior,))
+
+        # Insertar nueva respuesta
         g.cursor.execute(
             """
             INSERT INTO respuesta (id_usuario, id_formulario)
@@ -229,23 +230,28 @@ def guardar_respuesta():
         """,
             (id_usuario, id_formulario),
         )
-        g.conn.commit()
         id_respuesta = g.cursor.lastrowid
+
+        # Insertar detalle de factores
+        detalles = [(id_respuesta, factor_id, valor) for factor_id, valor in valores]
+        g.cursor.executemany(
+            """
+                INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
+                VALUES (%s, %s, %s)
+            """,
+            detalles,
+        )
+
+        g.conn.commit()
     except mysql.connector.IntegrityError:
         g.conn.rollback()
         flash("Ya se registró una respuesta para este formulario.")
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
+    except Exception:
+        g.conn.rollback()
+        flash("Error al guardar la respuesta. Intenta nuevamente.")
+        return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
-    # 5. Insertar detalle de factores
-    detalles = [(id_respuesta, factor_id, valor) for factor_id, valor in valores]
-    g.cursor.executemany(
-        """
-            INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
-            VALUES (%s, %s, %s)
-        """,
-        detalles,
-    )
-    g.conn.commit()
     invalidate_ranking_cache()
     if exit_redirect:
         return redirect(url_for("index"))
