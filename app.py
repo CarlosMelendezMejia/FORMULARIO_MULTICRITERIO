@@ -534,15 +534,14 @@ def vista_ranking():
         incompletas = RANKING_CACHE["incompletas"]
     else:
         # Detectar respuestas con ponderaciones incompletas
-        g.cursor.execute(
-            """
+        incompletas_query = """
             SELECT r.id AS id_respuesta
             FROM respuesta r
             LEFT JOIN ponderacion_admin p ON r.id = p.id_respuesta
             GROUP BY r.id
-            HAVING COUNT(p.id_factor) < 10
-            """
-        )
+            HAVING COUNT(p.id_factor) < %s
+        """
+        g.cursor.execute(incompletas_query, (10,))
         incompletas_rows = g.cursor.fetchall()
         incompletas = [row["id_respuesta"] for row in incompletas_rows]
 
@@ -556,14 +555,14 @@ def vista_ranking():
                 FROM respuesta r
                 LEFT JOIN ponderacion_admin pa2 ON r.id = pa2.id_respuesta
                 GROUP BY r.id
-                HAVING COUNT(pa2.id_factor) < 10
+                HAVING COUNT(pa2.id_factor) < %s
             ) p ON pa.id_respuesta = p.id_respuesta
             LEFT JOIN respuesta_detalle rd
                 ON rd.id_respuesta = pa.id_respuesta AND rd.id_factor = f.id
             WHERE p.id_respuesta IS NULL
             GROUP BY f.id ORDER BY total DESC
         """
-        g.cursor.execute(ranking_query)
+        g.cursor.execute(ranking_query, (10,))
         ranking = g.cursor.fetchall()
 
         RANKING_CACHE["data"] = ranking
