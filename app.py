@@ -167,12 +167,17 @@ def guardar_respuesta():
         return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
 
     # 4. Insertar nueva respuesta
-    cursor.execute("""
-        INSERT INTO respuesta (id_usuario, id_formulario)
-        VALUES (%s, %s)
-    """, (id_usuario, id_formulario))
-    conn.commit()
-    id_respuesta = cursor.lastrowid
+    try:
+        cursor.execute("""
+            INSERT INTO respuesta (id_usuario, id_formulario)
+            VALUES (%s, %s)
+        """, (id_usuario, id_formulario))
+        conn.commit()
+        id_respuesta = cursor.lastrowid
+    except mysql.connector.IntegrityError:
+        conn.rollback()
+        flash("Ya se registró una respuesta para este formulario.")
+        return redirect(url_for('mostrar_formulario', id_usuario=id_usuario))
 
     # 5. Insertar detalle de factores
     for factor_id, valor in valores:
