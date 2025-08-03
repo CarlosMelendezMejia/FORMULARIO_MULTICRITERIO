@@ -27,6 +27,13 @@ RANKING_CACHE = {"data": None, "incompletas": None, "timestamp": 0}
 CACHE_TTL = 300  # 5 minutos
 
 
+def invalidate_ranking_cache():
+    """Reset ranking cache to force recomputation on next request."""
+    RANKING_CACHE["data"] = None
+    RANKING_CACHE["incompletas"] = None
+    RANKING_CACHE["timestamp"] = 0
+
+
 @app.before_request
 def before_request():
     g.conn = get_connection()
@@ -230,6 +237,7 @@ def guardar_respuesta():
         detalles,
     )
     g.conn.commit()
+    invalidate_ranking_cache()
     if exit_redirect:
         return redirect(url_for("index"))
     return render_template("confirmacion.html")
@@ -502,6 +510,7 @@ def guardar_ponderacion():
             ponderaciones,
         )
     g.conn.commit()
+    invalidate_ranking_cache()
 
     flash("Ponderaciones guardadas correctamente.")
     return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
