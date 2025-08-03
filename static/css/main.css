@@ -46,9 +46,12 @@ h2::after {
 
 .logo-container {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
 }
 
 /* Styles from templates/formulario.html */
@@ -236,10 +239,6 @@ h2::after {
   font-weight: 500;
 }
 
-.logo-container {
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
 
 .logo-placeholder {
   width: 60px;
@@ -301,9 +300,6 @@ h3::after {
 }
 
 
-.logo-container {
-  gap: 1.5rem;
-}
 
 .logo-placeholder {
   width: 80px;
@@ -368,9 +364,6 @@ p {
   padding: 10px 25px;
 }
 
-.logo-container {
-  gap: 1.5rem;
-}
 
 .logo-placeholder {
   width: 80px;
@@ -427,14 +420,6 @@ body {
   color: white;
 }
 
-.logo-container {
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 0 1rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
 
 .logo-img-container {
   width: 80px;
