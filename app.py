@@ -506,7 +506,13 @@ def detalle_respuesta(id_respuesta):
 def guardar_ponderacion():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
-    id_respuesta = request.form["id_respuesta"]
+    id_respuesta_raw = request.form.get("id_respuesta", "")
+    try:
+        id_respuesta = int(id_respuesta_raw)
+    except ValueError:
+        flash("El identificador de la respuesta debe ser un número entero.")
+        return redirect(url_for("detalle_respuesta", id_respuesta=0))
+
     ponderaciones = []
 
     for key, value in request.form.items():
@@ -526,7 +532,11 @@ def guardar_ponderacion():
             return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
 
         peso = peso.quantize(Decimal("0.1"))
-        id_factor = key.split("_")[1]
+        try:
+            id_factor = int(key.split("_")[1])
+        except ValueError:
+            flash("El identificador del factor debe ser un número entero.")
+            return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
         ponderaciones.append((id_respuesta, id_factor, float(peso)))
 
     if ponderaciones:
