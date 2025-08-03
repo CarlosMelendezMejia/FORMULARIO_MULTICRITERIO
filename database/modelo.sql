@@ -41,7 +41,8 @@ CREATE TABLE respuesta (
     id_formulario INT NOT NULL,
     fecha_respuesta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id),
-    FOREIGN KEY (id_formulario) REFERENCES formulario(id)
+    FOREIGN KEY (id_formulario) REFERENCES formulario(id),
+    UNIQUE (id_usuario, id_formulario)
 );
 
 -- Detalle de las respuestas por factor (valor de 1 a 10, sin repetir por respuesta)
