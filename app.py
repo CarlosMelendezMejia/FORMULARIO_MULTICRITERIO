@@ -198,13 +198,22 @@ def guardar_respuesta():
 
     # 3. Leer los 10 valores únicos de los factores
     valores = []
-    for i in range(1, 11):
-        factor_id = int(request.form[f"factor_id_{i}"])
-        valor = int(request.form[f"valor_{i}"])
-        if not 1 <= valor <= 10:
-            flash("Cada valor debe estar entre 1 y 10.")
-            return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
-        valores.append((factor_id, valor))
+    try:
+        for i in range(1, 11):
+            factor_key = f"factor_id_{i}"
+            valor_key = f"valor_{i}"
+            if factor_key not in request.form or valor_key not in request.form:
+                flash(f"Faltan datos para el factor {i}.")
+                return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
+            factor_id = int(request.form[factor_key])
+            valor = int(request.form[valor_key])
+            if not 1 <= valor <= 10:
+                flash("Cada valor debe estar entre 1 y 10.")
+                return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
+            valores.append((factor_id, valor))
+    except ValueError:
+        flash("Los identificadores y valores de los factores deben ser números enteros.")
+        return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
     usados = [v[1] for v in valores]
     if len(set(usados)) != 10:
