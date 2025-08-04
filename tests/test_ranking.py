@@ -81,9 +81,35 @@ def test_vista_ranking_parametrized(monkeypatch):
     ranking_query, ranking_params = cursor.queries[3]
     assert "HAVING COUNT(p.id_factor) < %s" in incompletas_query
     assert incompletas_params == (10,)
-    assert "WITH respuestas_completas" in ranking_query
+    assert "JOIN (" in ranking_query
     assert "HAVING COUNT(id_factor) = %s" in ranking_query
     assert ranking_params == (10,)
+
+
+def test_vista_ranking_incompletas(monkeypatch):
+    cursor = DummyCursor(
+        fetchone_results=[
+            {"total": 1},  # total_asignados
+            {"total": 1},  # total_respuestas
+        ],
+        fetchall_results=[
+            [{"id_respuesta": 42}],  # incompletas_rows
+            [{"nombre": "Factor X", "total": 5}],  # ranking
+        ],
+    )
+    conn = DummyConnection(cursor)
+    monkeypatch.setattr(db, "get_connection", lambda: conn)
+    monkeypatch.setattr(app_module, "get_connection", lambda: conn)
+
+    cache.delete(RANKING_CACHE_KEY)
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess["is_admin"] = True
+        resp = client.get("/admin/ranking")
+        assert resp.status_code == 200
+        assert b"Factor X" in resp.data
+        assert b"ID: 42" in resp.data
 
 
 def test_ranking_cache_invalidation_after_ponderacion(monkeypatch):

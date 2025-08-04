@@ -638,17 +638,16 @@ def vista_ranking():
         incompletas = [row["id_respuesta"] for row in incompletas_rows]
 
         ranking_query = """
-            WITH respuestas_completas AS (
-                SELECT id_respuesta
-                FROM ponderacion_admin
-                GROUP BY id_respuesta
-                HAVING COUNT(id_factor) = %s
-            )
             SELECT f.nombre,
                    SUM(pa.peso_admin * rd.valor_usuario) AS total
             FROM factor f
             JOIN ponderacion_admin pa ON f.id = pa.id_factor
-            JOIN respuestas_completas rc ON pa.id_respuesta = rc.id_respuesta
+            JOIN (
+                SELECT id_respuesta
+                FROM ponderacion_admin
+                GROUP BY id_respuesta
+                HAVING COUNT(id_factor) = %s
+            ) rc ON pa.id_respuesta = rc.id_respuesta
             JOIN respuesta_detalle rd
                 ON rd.id_respuesta = pa.id_respuesta AND rd.id_factor = f.id
             GROUP BY f.id
