@@ -530,7 +530,7 @@ def detalle_respuesta(id_respuesta):
         FROM ponderacion_admin p
         JOIN respuesta_detalle rd ON rd.id_respuesta = p.id_respuesta AND rd.id_factor = p.id_factor
         JOIN factor f ON f.id = p.id_factor
-        GROUP BY f.id
+        GROUP BY f.id, f.nombre
         ORDER BY total DESC
     """
     )
@@ -650,7 +650,7 @@ def vista_ranking():
             ) rc ON pa.id_respuesta = rc.id_respuesta
             JOIN respuesta_detalle rd
                 ON rd.id_respuesta = pa.id_respuesta AND rd.id_factor = f.id
-            GROUP BY f.id
+            GROUP BY f.id, f.nombre
             ORDER BY total DESC
         """
         g.cursor.execute(ranking_query, (10,))
