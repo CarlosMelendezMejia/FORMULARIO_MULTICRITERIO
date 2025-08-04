@@ -28,6 +28,8 @@
               </ul>
             </div>
           </div>
+          <!-- Icono de información -->
+          <i class="bi bi-info-circle info-icon" data-bs-toggle="modal" data-bs-target="#adminInfoModal"></i>
         </nav>
         <div class="admin-container">
             <!-- Espacio para los 3 logos -->
@@ -96,6 +98,30 @@
             {% else %}
             <div class="alert alert-warning text-center">Aún no hay respuestas registradas.</div>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal de Información del Panel -->
+    <div class="modal fade" id="adminInfoModal" tabindex="-1" aria-labelledby="adminInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adminInfoModalLabel">Información del Panel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>En este panel puedes gestionar las respuestas y navegar a las distintas secciones mediante el menú superior:</p>
+                    <ul>
+                        <li><strong>Editar Factores:</strong> modifica los factores de evaluación disponibles.</li>
+                        <li><strong>Administrar Formularios:</strong> crea o gestiona los formularios asignados a los usuarios.</li>
+                        <li><strong>Ver Ranking Global:</strong> consulta el ranking general de ponderaciones.</li>
+                        <li><strong>Cerrar sesión:</strong> finaliza tu sesión de administrador.</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                </div>
+            </div>
         </div>
     </div>
 
