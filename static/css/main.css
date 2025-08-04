@@ -725,6 +725,12 @@ input[type="number"].ponderacion:focus {
     transform: rotate(360deg);
 }
 
+.login-background {
+    background: url("../img/background.png") no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+}
+
 .login-logos {
     position: fixed;
     bottom: 10px;
