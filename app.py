@@ -1,11 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, g
 import os
 import mysql.connector
-from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 import time
 from dotenv import load_dotenv
 import bleach
+from flask_caching import Cache
 
 load_dotenv()
 
@@ -17,21 +17,26 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 app = Flask(__name__)
 app.secret_key = "clave-secreta-sencilla"
 
+# Configuración de caché compartido
+CACHE_TTL = int(os.getenv("RANKING_CACHE_TTL", 300))
+cache = Cache(
+    app,
+    config={
+        "CACHE_TYPE": os.getenv("CACHE_TYPE", "SimpleCache"),
+        "CACHE_DEFAULT_TIMEOUT": CACHE_TTL,
+    },
+)
+RANKING_CACHE_KEY = "ranking_cache"
+
 
 def sanitize(texto: str) -> str:
     """Sanitize user-provided text by stripping HTML tags and scripts."""
     return bleach.clean(texto or "", tags=[], attributes={}, strip=True)
 
-# Cache sencillo para almacenar el ranking de factores
-RANKING_CACHE = {"data": None, "incompletas": None, "timestamp": 0}
-CACHE_TTL = 300  # 5 minutos
-
 
 def invalidate_ranking_cache():
     """Reset ranking cache to force recomputation on next request."""
-    RANKING_CACHE["data"] = None
-    RANKING_CACHE["incompletas"] = None
-    RANKING_CACHE["timestamp"] = 0
+    cache.delete(RANKING_CACHE_KEY)
 
 
 # Cache sencillo para los factores
@@ -615,13 +620,10 @@ def vista_ranking():
 
     pendientes = total_respuestas < total_asignados
 
-    now = time.time()
-    if (
-        now - RANKING_CACHE["timestamp"] < CACHE_TTL
-        and RANKING_CACHE["data"] is not None
-    ):
-        ranking = RANKING_CACHE["data"]
-        incompletas = RANKING_CACHE["incompletas"]
+    cached = cache.get(RANKING_CACHE_KEY)
+    if cached is not None:
+        ranking = cached["ranking"]
+        incompletas = cached["incompletas"]
     else:
         # Detectar respuestas con ponderaciones incompletas
         incompletas_query = """
@@ -655,9 +657,11 @@ def vista_ranking():
         g.cursor.execute(ranking_query, (10,))
         ranking = g.cursor.fetchall()
 
-        RANKING_CACHE["data"] = ranking
-        RANKING_CACHE["incompletas"] = incompletas
-        RANKING_CACHE["timestamp"] = now
+        cache.set(
+            RANKING_CACHE_KEY,
+            {"ranking": ranking, "incompletas": incompletas},
+            timeout=CACHE_TTL,
+        )
 
     # Determinar si no hay datos
     estado_ranking = None

@@ -8,6 +8,8 @@ import db
 import app as app_module
 
 app = app_module.app
+cache = app_module.cache
+RANKING_CACHE_KEY = app_module.RANKING_CACHE_KEY
 
 class DummyCursor:
     def __init__(self, fetchone_results=None):
@@ -54,9 +56,7 @@ def test_reiniciar_formularios_requires_admin(monkeypatch):
 
 def test_reiniciar_formularios(monkeypatch):
     cursor, conn = create_dummy(monkeypatch)
-    app_module.RANKING_CACHE["data"] = "x"
-    app_module.RANKING_CACHE["incompletas"] = "y"
-    app_module.RANKING_CACHE["timestamp"] = 123
+    cache.set(RANKING_CACHE_KEY, {"ranking": "x", "incompletas": "y"})
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -71,18 +71,14 @@ def test_reiniciar_formularios(monkeypatch):
         ("DELETE FROM respuesta", None),
     ]
     assert conn.commit_called
-    assert app_module.RANKING_CACHE["data"] is None
-    assert app_module.RANKING_CACHE["incompletas"] is None
-    assert app_module.RANKING_CACHE["timestamp"] == 0
+    assert cache.get(RANKING_CACHE_KEY) is None
 
 
 def test_eliminar_formulario_invalida_cache(monkeypatch):
     fetchone_results = [{"total": 0}]
     cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
 
-    app_module.RANKING_CACHE["data"] = "cached"
-    app_module.RANKING_CACHE["incompletas"] = "cached"
-    app_module.RANKING_CACHE["timestamp"] = 999
+    cache.set(RANKING_CACHE_KEY, {"ranking": "cached", "incompletas": "cached"})
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -98,6 +94,4 @@ def test_eliminar_formulario_invalida_cache(monkeypatch):
         ("DELETE FROM formulario WHERE id = %s", (1,)),
     ]
     assert conn.commit_called
-    assert app_module.RANKING_CACHE["data"] is None
-    assert app_module.RANKING_CACHE["incompletas"] is None
-    assert app_module.RANKING_CACHE["timestamp"] == 0
+    assert cache.get(RANKING_CACHE_KEY) is None

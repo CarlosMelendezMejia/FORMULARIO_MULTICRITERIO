@@ -9,7 +9,8 @@ import db
 import app as app_module
 
 app = app_module.app
-RANKING_CACHE = app_module.RANKING_CACHE
+cache = app_module.cache
+RANKING_CACHE_KEY = app_module.RANKING_CACHE_KEY
 
 class DummyCursor:
     def __init__(self, fetchone_results=None, fetchall_results=None):
@@ -65,9 +66,7 @@ def test_vista_ranking_parametrized(monkeypatch):
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
 
     # reset cache
-    RANKING_CACHE["data"] = None
-    RANKING_CACHE["timestamp"] = 0
-    RANKING_CACHE["incompletas"] = None
+    cache.delete(RANKING_CACHE_KEY)
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -102,9 +101,7 @@ def test_ranking_cache_invalidation_after_ponderacion(monkeypatch):
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
 
-    app_module.RANKING_CACHE["data"] = None
-    app_module.RANKING_CACHE["timestamp"] = 0
-    app_module.RANKING_CACHE["incompletas"] = None
+    cache.delete(RANKING_CACHE_KEY)
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
