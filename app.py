@@ -58,10 +58,12 @@ def invalidate_factores_cache():
     FACTORES_CACHE["timestamp"] = 0
 
 
-@app.before_request
-def before_request():
-    g.conn = get_connection()
-    g.cursor = g.conn.cursor(dictionary=True)
+def get_db():
+    """Obtain a database connection and cursor lazily."""
+    if "conn" not in g:
+        g.conn = get_connection()
+        g.cursor = g.conn.cursor(dictionary=True)
+    return g.conn, g.cursor
 
 
 @app.teardown_appcontext
@@ -113,6 +115,7 @@ def mostrar_formulario(id_usuario):
     respuestas previas. Si todos los formularios ya tienen respuesta, se
     elige el primero asignado.
     """
+    get_db()
 
     g.cursor.execute(
         """
@@ -208,6 +211,7 @@ def guardar_respuesta():
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
     # 2. Guardar información en la base de datos dentro de una transacción
+    get_db()
     try:
         g.conn.start_transaction()
 
@@ -307,6 +311,7 @@ def admin_logout():
 def panel_admin():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    get_db()
     page = request.args.get("page", 1, type=int)
     per_page = 10
     offset = (page - 1) * per_page
@@ -340,6 +345,8 @@ def panel_admin():
 def administrar_formularios():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+
+    get_db()
 
     # Obtener el próximo ID para sugerir un nombre por defecto
     g.cursor.execute(
@@ -384,6 +391,8 @@ def administrar_formularios():
 def eliminar_formulario(id):
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+
+    get_db()
 
     g.cursor.execute(
         "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s",
@@ -433,6 +442,8 @@ def reiniciar_formularios():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
 
+    get_db()
+
     g.cursor.execute("DELETE FROM ponderacion_admin")
     g.cursor.execute("DELETE FROM respuesta_detalle")
     g.cursor.execute("DELETE FROM respuesta")
@@ -446,6 +457,8 @@ def reiniciar_formularios():
 def administrar_factores():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+
+    get_db()
 
     if request.method == "POST":
         datos = []
@@ -475,6 +488,7 @@ def administrar_factores():
 def detalle_respuesta(id_respuesta):
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    get_db()
     # Datos generales
     g.cursor.execute(
         """
@@ -538,6 +552,8 @@ def guardar_ponderacion():
         flash("El identificador de la respuesta debe ser un número entero.")
         return redirect(url_for("detalle_respuesta", id_respuesta=0))
 
+    get_db()
+
     ponderaciones = []
 
     for key, value in request.form.items():
@@ -589,6 +605,7 @@ def guardar_ponderacion():
 def vista_ranking():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    get_db()
     # Contar formularios asignados y formularios con respuesta
     g.cursor.execute("SELECT COUNT(*) AS total FROM asignacion")
     total_asignados = g.cursor.fetchone()["total"]
