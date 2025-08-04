@@ -82,7 +82,8 @@ def test_vista_ranking_parametrized(monkeypatch):
     ranking_query, ranking_params = cursor.queries[3]
     assert "HAVING COUNT(p.id_factor) < %s" in incompletas_query
     assert incompletas_params == (10,)
-    assert "HAVING COUNT(pa2.id_factor) < %s" in ranking_query
+    assert "WITH respuestas_completas" in ranking_query
+    assert "HAVING COUNT(id_factor) = %s" in ranking_query
     assert ranking_params == (10,)
 
 
