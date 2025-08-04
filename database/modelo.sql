@@ -57,6 +57,10 @@ CREATE TABLE respuesta_detalle (
     UNIQUE (id_respuesta, id_factor)       -- impide duplicar factores
 );
 
+-- Índice para acelerar consultas por respuesta y factor
+CREATE INDEX idx_respuesta_detalle_respuesta_factor
+    ON respuesta_detalle (id_respuesta, id_factor);
+
 -- Tabla de ponderación del administrador sobre cada respuesta
 CREATE TABLE ponderacion_admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -67,6 +71,10 @@ CREATE TABLE ponderacion_admin (
     FOREIGN KEY (id_factor) REFERENCES factor(id),
     UNIQUE (id_respuesta, id_factor)
 );
+
+-- Índice para búsquedas por respuesta en ponderaciones
+CREATE INDEX idx_ponderacion_admin_respuesta
+    ON ponderacion_admin (id_respuesta);
 
 -- Insertar los 54 formularios
 INSERT INTO formulario (nombre)
