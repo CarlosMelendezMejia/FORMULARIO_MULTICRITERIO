@@ -131,6 +131,15 @@ h2::after {
 
 .admin-navbar {
   margin-bottom: 2rem;
+  position: relative;
+}
+
+.admin-navbar .info-icon {
+  color: var(--color-primario-medio);
+}
+
+.admin-navbar .info-icon:hover {
+  color: var(--color-acento);
 }
 
 .table thead th {
