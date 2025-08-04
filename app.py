@@ -34,6 +34,30 @@ def invalidate_ranking_cache():
     RANKING_CACHE["timestamp"] = 0
 
 
+# Cache sencillo para los factores
+FACTORES_CACHE = {"data": None, "timestamp": 0}
+FACTORES_CACHE_TTL = int(os.getenv("FACTORES_CACHE_TTL", 300))
+
+
+def get_factores():
+    """Obtiene la lista de factores usando caché en memoria."""
+    now = time.time()
+    if (
+        FACTORES_CACHE["data"] is None
+        or now - FACTORES_CACHE["timestamp"] > FACTORES_CACHE_TTL
+    ):
+        g.cursor.execute("SELECT * FROM factor")
+        FACTORES_CACHE["data"] = g.cursor.fetchall()
+        FACTORES_CACHE["timestamp"] = now
+    return FACTORES_CACHE["data"]
+
+
+def invalidate_factores_cache():
+    """Reinicia el caché de factores."""
+    FACTORES_CACHE["data"] = None
+    FACTORES_CACHE["timestamp"] = 0
+
+
 @app.before_request
 def before_request():
     g.conn = get_connection()
@@ -110,9 +134,8 @@ def mostrar_formulario(id_usuario):
 
     id_formulario = asignacion["id_formulario"]
 
-    # Obtener factores
-    g.cursor.execute("SELECT * FROM factor")
-    factores = g.cursor.fetchall()
+    # Obtener factores (con caché)
+    factores = get_factores()
 
     # Obtener datos del usuario
     g.cursor.execute("SELECT * FROM usuario WHERE id = %s", (id_usuario,))
@@ -435,6 +458,7 @@ def administrar_factores():
         )
         g.conn.commit()
         flash("Factores actualizados correctamente.")
+        invalidate_factores_cache()
         return redirect(url_for("administrar_factores"))
 
     g.cursor.execute("SELECT * FROM factor ORDER BY id")
