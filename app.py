@@ -58,9 +58,10 @@ def get_factores():
 
 
 def invalidate_factores_cache():
-    """Reinicia el caché de factores."""
+    """Reinicia el caché de factores y del ranking relacionado."""
     FACTORES_CACHE["data"] = None
     FACTORES_CACHE["timestamp"] = 0
+    invalidate_ranking_cache()
 
 
 def get_db():
@@ -642,6 +643,9 @@ def vista_ranking():
         ranking = cached["ranking"]
         incompletas = cached["incompletas"]
     else:
+        # Número de factores a considerar en las consultas
+        count_factores = len(get_factores())
+
         # Detectar respuestas con ponderaciones incompletas
         incompletas_query = """
             SELECT r.id AS id_respuesta
@@ -650,7 +654,7 @@ def vista_ranking():
             GROUP BY r.id
             HAVING COUNT(p.id_factor) < %s
         """
-        g.cursor.execute(incompletas_query, (10,))
+        g.cursor.execute(incompletas_query, (count_factores,))
         incompletas_rows = g.cursor.fetchall()
         incompletas = [row["id_respuesta"] for row in incompletas_rows]
 
@@ -670,7 +674,7 @@ def vista_ranking():
             GROUP BY f.id, f.nombre
             ORDER BY total DESC
         """
-        g.cursor.execute(ranking_query, (10,))
+        g.cursor.execute(ranking_query, (count_factores,))
         ranking = g.cursor.fetchall()
 
         cache.set(

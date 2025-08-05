@@ -64,6 +64,9 @@ def test_vista_ranking_parametrized(monkeypatch):
     conn = DummyConnection(cursor)
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
+    # mock factores count to ensure dynamic parameter is used
+    expected_count = 7
+    monkeypatch.setattr(app_module, "get_factores", lambda: [object()] * expected_count)
 
     # reset cache
     cache.delete(RANKING_CACHE_KEY)
@@ -80,10 +83,10 @@ def test_vista_ranking_parametrized(monkeypatch):
     incompletas_query, incompletas_params = cursor.queries[2]
     ranking_query, ranking_params = cursor.queries[3]
     assert "HAVING COUNT(p.id_factor) < %s" in incompletas_query
-    assert incompletas_params == (10,)
+    assert incompletas_params == (expected_count,)
     assert "JOIN (" in ranking_query
     assert "HAVING COUNT(id_factor) = %s" in ranking_query
-    assert ranking_params == (10,)
+    assert ranking_params == (expected_count,)
 
 
 def test_vista_ranking_incompletas(monkeypatch):
@@ -100,6 +103,7 @@ def test_vista_ranking_incompletas(monkeypatch):
     conn = DummyConnection(cursor)
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
+    monkeypatch.setattr(app_module, "get_factores", lambda: [object()] * 5)
 
     cache.delete(RANKING_CACHE_KEY)
 
@@ -126,6 +130,7 @@ def test_ranking_cache_invalidation_after_ponderacion(monkeypatch):
     conn = DummyConnection(cursor)
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
+    monkeypatch.setattr(app_module, "get_factores", lambda: [object()] * 4)
 
     cache.delete(RANKING_CACHE_KEY)
 
