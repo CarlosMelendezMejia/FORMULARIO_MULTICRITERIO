@@ -27,12 +27,19 @@ class DummyConnection:
     def __init__(self, cursor):
         self._cursor = cursor
         self.commit_called = 0
+        self.start_transaction_called = False
 
     def cursor(self, dictionary=True):
         return self._cursor
 
+    def start_transaction(self):
+        self.start_transaction_called = True
+
     def commit(self):
         self.commit_called += 1
+
+    def rollback(self):
+        pass
 
     def close(self):
         pass
@@ -77,4 +84,5 @@ def test_post_factores_incluye_color_en_queries(monkeypatch):
             ("Factor B", "Desc B", "#00ff00"),
         ),
     ]
-    assert conn.commit_called == 2
+    assert conn.start_transaction_called
+    assert conn.commit_called == 1
