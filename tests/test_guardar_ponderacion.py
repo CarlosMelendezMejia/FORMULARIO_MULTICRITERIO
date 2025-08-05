@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import db
 import app as app_module
+from decimal import Decimal
 
 app = app_module.app
 
@@ -89,7 +90,7 @@ def test_guardar_ponderacion_ignora_global(monkeypatch):
             'nombre': 'F2',
             'descripcion': 'D',
             'valor_usuario': 3,
-            'peso_admin': 8.0,
+            'peso_admin': Decimal("8.0"),
         }
     ]
     fetchone = [{'id_respuesta': 1, 'nombre': 'N', 'apellidos': 'A', 'formulario': 'Form'}]
@@ -114,7 +115,10 @@ def test_guardar_ponderacion_ignora_global(monkeypatch):
         assert 'DELETE FROM ponderacion_admin WHERE id_respuesta = %s' in delete_q
         assert delete_params == (1,)
         insert_q, insert_params = cursor.queries[2]
-        assert insert_params == [(1, 1, 0.0), (1, 2, 8.0)]
+        assert insert_params == [
+            (1, 1, Decimal("0.0")),
+            (1, 2, Decimal("8.0")),
+        ]
         assert conn.commit_called == 1
 
         resp2 = client.get('/admin/respuesta/1')

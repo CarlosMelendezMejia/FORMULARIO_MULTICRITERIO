@@ -686,9 +686,9 @@ def guardar_ponderacion():
                 flash("Cada ponderación debe estar entre 0 y 10.")
                 return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
 
-            peso = float(peso.quantize(Decimal("0.1")))
+            peso = peso.quantize(Decimal("0.1"))
         else:
-            peso = 0.0
+            peso = Decimal("0.0")
         ponderaciones.append((id_respuesta, id_factor, peso))
 
     g.cursor.execute(
