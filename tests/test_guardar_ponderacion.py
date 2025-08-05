@@ -114,3 +114,32 @@ def test_guardar_ponderacion_ignora_global(monkeypatch):
         resp2 = client.get('/admin/respuesta/1')
         assert resp2.status_code == 200
         assert b'value="8.0"' in resp2.data
+
+
+def test_detalle_respuesta_no_filtra_bloqueadas(monkeypatch):
+    """El administrador puede ver el detalle incluso si la respuesta está bloqueada."""
+    factors = [
+        {
+            'id_factor': 1,
+            'nombre': 'F1',
+            'descripcion': 'Desc',
+            'valor_usuario': 5,
+            'peso_admin': '',
+        }
+    ]
+    fetchone = [{'id_respuesta': 5, 'nombre': 'N', 'apellidos': 'A', 'formulario': 'Form'}]
+    cursor, conn = create_dummy(
+        monkeypatch,
+        fetchone_results=fetchone,
+        fetchall_results=[factors, []],
+    )
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess['is_admin'] = True
+        resp = client.get('/admin/respuesta/5')
+        assert resp.status_code == 200
+        # La consulta no debe filtrar por "bloqueado = 0"
+        assert 'bloqueado = 0' not in cursor.queries[0][0].lower()
+        # Se muestra el campo de ponderación para el factor
+        assert b'name="ponderacion_1"' in resp.data
