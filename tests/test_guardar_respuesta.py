@@ -1,0 +1,111 @@
+import os
+import sys
+import time
+import pytest
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+import db
+import app as app_module
+
+app = app_module.app
+BLOQUEO_CACHE = app_module.BLOQUEO_CACHE
+
+class DummyCursor:
+    def __init__(self, fetchone_results=None):
+        self.queries = []
+        self.fetchone_results = fetchone_results or []
+        self.lastrowid = 10
+
+    def execute(self, query, params=None):
+        self.queries.append((query, params))
+
+    def executemany(self, query, seq_params):
+        self.queries.append((query, seq_params))
+
+    def fetchone(self):
+        return self.fetchone_results.pop(0) if self.fetchone_results else None
+
+    def close(self):
+        pass
+
+class DummyConnection:
+    def __init__(self, cursor):
+        self._cursor = cursor
+        self.start_transaction_called = False
+        self.commit_called = False
+
+    def cursor(self, dictionary=True):
+        return self._cursor
+
+    def start_transaction(self):
+        self.start_transaction_called = True
+
+    def commit(self):
+        self.commit_called = True
+
+    def rollback(self):
+        pass
+
+    def close(self):
+        pass
+
+def create_dummy(monkeypatch, fetchone_results=None):
+    cursor = DummyCursor(fetchone_results=fetchone_results)
+    conn = DummyConnection(cursor)
+    monkeypatch.setattr(db, "get_connection", lambda: conn)
+    monkeypatch.setattr(app_module, "get_connection", lambda: conn)
+    return cursor, conn
+
+def test_guardar_respuesta_cache_bloqueado_evita_db(monkeypatch):
+    called = {"value": False}
+
+    def fake_get_connection():
+        called["value"] = True
+        cursor = DummyCursor()
+        return DummyConnection(cursor)
+
+    monkeypatch.setattr(db, "get_connection", fake_get_connection)
+    monkeypatch.setattr(app_module, "get_connection", fake_get_connection)
+
+    BLOQUEO_CACHE.clear()
+    BLOQUEO_CACHE[(1, 2)] = {"bloqueado": True, "timestamp": time.time()}
+
+    with app.test_client() as client:
+        resp = client.post("/guardar_respuesta", data={"usuario_id": "1", "formulario_id": "2"})
+        assert resp.status_code == 200
+        assert b"El formulario ya se respondi" in resp.data
+
+    assert not called["value"]
+
+
+def test_guardar_respuesta_invalida_cache(monkeypatch):
+    cursor, conn = create_dummy(monkeypatch, fetchone_results=[None])
+    monkeypatch.setattr(app_module, "get_factores", lambda: [{"id": 1}])
+
+    BLOQUEO_CACHE.clear()
+    BLOQUEO_CACHE[(1, 2)] = {"bloqueado": False, "timestamp": time.time()}
+
+    data = {
+        "usuario_id": "1",
+        "formulario_id": "2",
+        "nombre": "N",
+        "apellidos": "A",
+        "cargo": "C",
+        "dependencia": "D",
+        "factor_id_1": "1",
+        "valor_1": "1",
+    }
+
+    with app.test_client() as client:
+        resp = client.post("/guardar_respuesta", data=data)
+        assert resp.status_code == 200
+
+    assert len(cursor.queries) == 4
+    assert "UPDATE usuario" in cursor.queries[0][0]
+    assert "SELECT id FROM respuesta" in cursor.queries[1][0]
+    assert "INSERT INTO respuesta" in cursor.queries[2][0]
+    assert "INSERT INTO respuesta_detalle" in cursor.queries[3][0]
+    assert conn.start_transaction_called
+    assert conn.commit_called
+    assert (1, 2) not in BLOQUEO_CACHE
