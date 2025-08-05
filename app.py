@@ -607,7 +607,8 @@ def detalle_respuesta(id_respuesta):
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id
-        WHERE r.id = %s AND r.bloqueado = 0
+        -- No filtramos por "bloqueado" para permitir revisar respuestas recién enviadas
+        WHERE r.id = %s
     """,
         (id_respuesta,),
     )
