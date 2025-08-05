@@ -751,6 +751,7 @@ def vista_ranking():
 
         ranking_query = """
             SELECT f.nombre,
+                   f.color,
                    SUM(pa.peso_admin * rd.valor_usuario) AS total
             FROM factor f
             JOIN ponderacion_admin pa ON f.id = pa.id_factor
@@ -763,7 +764,7 @@ def vista_ranking():
             JOIN respuesta r ON r.id = rc.id_respuesta AND r.bloqueado = 0
             JOIN respuesta_detalle rd
                 ON rd.id_respuesta = pa.id_respuesta AND rd.id_factor = f.id
-            GROUP BY f.id, f.nombre
+            GROUP BY f.id, f.nombre, f.color
             ORDER BY total DESC
         """
         g.cursor.execute(ranking_query, (count_factores,))

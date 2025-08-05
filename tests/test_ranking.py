@@ -188,3 +188,7 @@ def test_vista_ranking_incluye_color(monkeypatch):
         resp = client.get("/admin/ranking")
         assert resp.status_code == 200
         assert b"background-color: #123456" in resp.data
+        # ensure the query requests the color column
+        ranking_query, _ = cursor.queries[3]
+        assert "f.color" in ranking_query
+        assert "GROUP BY f.id, f.nombre, f.color" in ranking_query
