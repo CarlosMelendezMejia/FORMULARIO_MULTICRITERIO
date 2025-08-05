@@ -92,7 +92,7 @@
 
                 <div class="bg-instruccion">
                     <strong>Instrucción:</strong> Por favor, según su percepción, ordene los siguientes factores asignando
-                    un valor del <strong>10 al 1</strong>, donde <strong>10 representa el factor de mayor
+                    un valor del <strong>{{ num_factores }} al 1</strong>, donde <strong>{{ num_factores }} representa el factor de mayor
                         importancia</strong> y <strong>1 el de menor relevancia</strong>.
                     <br>Nota: Cada número debe ser único. No se pueden repetir valores.
                 </div>
@@ -117,7 +117,7 @@
                                 <td class="text-center">
                                     <select name="valor_{{ loop.index }}" class="form-select valor-factor" required>
                                         <option value="">Seleccione</option>
-                                        {% for num in range(1, 11) %}
+                                        {% for num in range(1, num_factores + 1) %}
                                         <option value="{{ num }}" {% if respuestas_previas[factor.id]|default('')==num %}selected{% endif %}>
                                             {{ num }}
                                         </option>
