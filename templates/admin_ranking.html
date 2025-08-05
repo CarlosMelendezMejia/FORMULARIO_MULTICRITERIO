@@ -64,7 +64,7 @@
             {% for r in ranking %}
             <tr>
               <td>{{ loop.index }}</td>
-              <td>{{ r.nombre }}</td>
+              <td><span class="color-badge me-1" style="background-color: {{ r.color or '#cccccc' }};"></span>{{ r.nombre }}</td>
               <td>
                 {{ '%.2f' | format(r.total or 0) }}
                 {% if (r.total or 0) == 0 %}
@@ -97,6 +97,7 @@
     // Renderizar gráfico con datos desde Jinja
     const factorLabels = {{ ranking | map(attribute='nombre') | list | tojson | safe }};
     const factorTotals = {{ ranking | map(attribute='total') | list | tojson | safe }};
+    const factorColors = {{ ranking | map(attribute='color') | map('default', '#cccccc') | list | tojson | safe }};
 
     const ctx = document.getElementById('rankingChart').getContext('2d');
     new Chart(ctx, {
@@ -106,8 +107,8 @@
         datasets: [{
           label: 'Total Ponderado',
           data: factorTotals,
-          backgroundColor: 'rgba(32, 133, 140, 0.5)',
-          borderColor: 'rgba(32, 133, 140, 1)',
+          backgroundColor: factorColors,
+          borderColor: factorColors,
           borderWidth: 1
         }]
       },

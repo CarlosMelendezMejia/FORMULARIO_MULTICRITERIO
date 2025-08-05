@@ -111,6 +111,7 @@
                             <tr>
                                 <td>
                                     <strong>{{ factor.nombre }}</strong>
+                                    <span class="color-badge ms-2" style="background-color: {{ factor.color or '#cccccc' }};"></span>
                                     <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
                                 </td>
                                 <td>{{ factor.descripcion }}</td>
