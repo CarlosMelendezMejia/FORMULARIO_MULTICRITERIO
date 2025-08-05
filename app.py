@@ -6,6 +6,8 @@ import time
 from dotenv import load_dotenv
 import bleach
 from flask_caching import Cache
+import logging
+from logging.handlers import RotatingFileHandler
 
 load_dotenv()
 
@@ -16,6 +18,17 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 app = Flask(__name__)
 app.secret_key = "clave-secreta-sencilla"
+
+# Configuración de registro
+os.makedirs("static/logs", exist_ok=True)
+log_handler = RotatingFileHandler(
+    "static/logs/app.log", maxBytes=1_048_576, backupCount=10
+)
+log_handler.setLevel(logging.DEBUG)
+log_formatter = logging.Formatter("%(asctime)s %(levelname)s: %(message)s")
+log_handler.setFormatter(log_formatter)
+app.logger.addHandler(log_handler)
+app.logger.setLevel(logging.DEBUG)
 
 # Configuración de caché compartido
 CACHE_TTL = int(os.getenv("RANKING_CACHE_TTL", 300))
@@ -154,6 +167,11 @@ def mostrar_formulario(id_usuario):
     respuestas previas. Si todos los formularios ya tienen respuesta, se
     elige el primero asignado.
     """
+    ip = request.remote_addr
+    app.logger.info(
+        "mostrar_formulario inicio usuario=%s ip=%s", id_usuario, ip
+    )
+
     get_db()
 
     g.cursor.execute(
@@ -172,23 +190,36 @@ def mostrar_formulario(id_usuario):
         (id_usuario,),
     )
     asignacion = g.cursor.fetchone()
+    app.logger.info(
+        "Asignacion usuario=%s resultado=%s", id_usuario, asignacion
+    )
 
     if not asignacion:
+        app.logger.info("Sin formulario asignado usuario=%s", id_usuario)
         return "No se encontró un formulario asignado."
 
     id_formulario = asignacion["id_formulario"]
 
     # Verificar si el formulario ya fue respondido y está bloqueado (usa caché)
     if is_formulario_bloqueado(id_usuario, id_formulario):
+        app.logger.info(
+            "Formulario bloqueado usuario=%s formulario=%s", id_usuario, id_formulario
+        )
         return render_template("formulario_bloqueado.html")
 
     # Obtener factores (con caché)
     factores = get_factores()
     num_factores = len(factores)
+    app.logger.info(
+        "Formulario %s tiene %s factores para usuario=%s", id_formulario, num_factores, id_usuario
+    )
 
     # Obtener datos del usuario
     g.cursor.execute("SELECT * FROM usuario WHERE id = %s", (id_usuario,))
     usuario = g.cursor.fetchone()
+    app.logger.info(
+        "Datos usuario=%s: %s", id_usuario, usuario
+    )
 
     # Obtener respuestas anteriores (si existen)
     g.cursor.execute(
@@ -203,9 +234,15 @@ def mostrar_formulario(id_usuario):
         (id_usuario, id_formulario),
     )
     respuestas_previas = g.cursor.fetchall()
+    app.logger.info(
+        "Respuestas previas usuario=%s formulario=%s: %s", id_usuario, id_formulario, respuestas_previas
+    )
 
     # Convertir a diccionario {id_factor: valor}
     respuestas_dict = {r["id_factor"]: r["valor_usuario"] for r in respuestas_previas}
+    app.logger.info(
+        "Render formulario usuario=%s formulario=%s", id_usuario, id_formulario
+    )
 
     return render_template(
         "formulario.html",
@@ -228,9 +265,21 @@ def guardar_respuesta():
     id_usuario = int(request.form["usuario_id"])
     id_formulario = int(request.form["formulario_id"])
     exit_redirect = request.form.get("exit_redirect")
+    ip = request.remote_addr
+    app.logger.info(
+        "guardar_respuesta inicio usuario=%s formulario=%s ip=%s",
+        id_usuario,
+        id_formulario,
+        ip,
+    )
 
     # Verificar bloqueo mediante caché antes de acceder a la base de datos
     if is_formulario_bloqueado(id_usuario, id_formulario):
+        app.logger.info(
+            "Formulario bloqueado usuario=%s formulario=%s",
+            id_usuario,
+            id_formulario,
+        )
         return render_template("formulario_bloqueado.html")
 
     get_db()
@@ -261,6 +310,12 @@ def guardar_respuesta():
         flash("Los identificadores y valores de los factores deben ser números enteros.")
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
+    app.logger.info(
+        "Valores recibidos usuario=%s formulario=%s: %s",
+        id_usuario,
+        id_formulario,
+        valores,
+    )
     usados = [v[1] for v in valores]
     if len(set(usados)) != num_factores:
         flash(f"Cada valor del 1 al {num_factores} debe ser único. No se permiten duplicados.")
@@ -329,10 +384,20 @@ def guardar_respuesta():
         g.conn.commit()
     except mysql.connector.IntegrityError:
         g.conn.rollback()
+        app.logger.info(
+            "Respuesta duplicada usuario=%s formulario=%s",
+            id_usuario,
+            id_formulario,
+        )
         flash("Ya se registró una respuesta para este formulario.")
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
     except Exception:
         g.conn.rollback()
+        app.logger.exception(
+            "Error al guardar respuesta usuario=%s formulario=%s",
+            id_usuario,
+            id_formulario,
+        )
         flash("Error al guardar la respuesta. Intenta nuevamente.")
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
@@ -340,7 +405,17 @@ def guardar_respuesta():
     invalidate_bloqueo_cache(id_usuario, id_formulario)
     invalidate_ranking_cache()
     if exit_redirect:
+        app.logger.info(
+            "Respuesta guardada usuario=%s formulario=%s con redireccion",
+            id_usuario,
+            id_formulario,
+        )
         return redirect(url_for("index"))
+    app.logger.info(
+        "Respuesta guardada usuario=%s formulario=%s",
+        id_usuario,
+        id_formulario,
+    )
     return render_template("confirmacion.html")
 
 
@@ -348,15 +423,21 @@ def guardar_respuesta():
 def admin_login():
     if request.method == "POST":
         password = request.form.get("password")
+        ip = request.remote_addr
+        app.logger.info("Intento login admin ip=%s", ip)
         if password == ADMIN_PASSWORD:
             session["is_admin"] = True
+            app.logger.info("Login admin exitoso ip=%s", ip)
             return redirect(url_for("panel_admin"))
+        app.logger.info("Login admin fallido ip=%s", ip)
         flash("Contraseña incorrecta.")
     return render_template("admin_login.html")
 
 
 @app.route("/admin/logout")
 def admin_logout():
+    ip = request.remote_addr
+    app.logger.info("Logout admin ip=%s", ip)
     session.pop("is_admin", None)
     return redirect(url_for("index"))
 
@@ -370,10 +451,12 @@ def admin_logout():
 def panel_admin():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    ip = request.remote_addr
     get_db()
     page = request.args.get("page", 1, type=int)
     per_page = 10
     offset = (page - 1) * per_page
+    app.logger.info("panel_admin inicio ip=%s page=%s", ip, page)
     g.cursor.execute(
         """
         SELECT r.id AS id_respuesta,
@@ -395,6 +478,12 @@ def panel_admin():
     has_next = len(respuestas) > per_page
     if has_next:
         respuestas = respuestas[:-1]
+    app.logger.info(
+        "panel_admin respuestas=%s ip=%s page=%s",
+        len(respuestas),
+        ip,
+        page,
+    )
 
     return render_template(
         "admin.html", respuestas=respuestas, page=page, has_next=has_next
@@ -406,6 +495,7 @@ def administrar_formularios():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
 
+    ip = request.remote_addr
     get_db()
 
     # Obtener el próximo ID para sugerir un nombre por defecto
@@ -427,6 +517,7 @@ def administrar_formularios():
             (nombre,),
         )
         g.conn.commit()
+        app.logger.info("Formulario creado '%s' ip=%s", nombre, ip)
         flash("Formulario creado correctamente.")
         return redirect(url_for("administrar_formularios"))
 
@@ -443,6 +534,7 @@ def administrar_formularios():
     )
     formularios = g.cursor.fetchall()
 
+    app.logger.info("Listado formularios ip=%s total=%s", ip, len(formularios))
     return render_template(
         "admin_formularios.html",
         formularios=formularios,
@@ -454,6 +546,7 @@ def administrar_formularios():
 def eliminar_formulario(id):
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    ip = request.remote_addr
 
     get_db()
 
@@ -462,6 +555,9 @@ def eliminar_formulario(id):
         (id,),
     )
     total_respuestas = g.cursor.fetchone()["total"]
+    app.logger.info(
+        "Eliminar formulario %s ip=%s respuestas=%s", id, ip, total_respuestas
+    )
 
     confirm = request.form.get("confirm")
     expected = request.form.get("expected_count")
@@ -496,9 +592,11 @@ def eliminar_formulario(id):
             if fid == id:
                 invalidate_bloqueo_cache(uid, fid)
         invalidate_ranking_cache()
+        app.logger.info("Formulario %s eliminado ip=%s", id, ip)
         flash("Formulario eliminado correctamente.")
         return redirect(url_for("administrar_formularios"))
 
+    app.logger.info("Eliminación cancelada formulario=%s ip=%s", id, ip)
     flash("Eliminación cancelada.")
     return redirect(url_for("administrar_formularios"))
 
@@ -508,7 +606,9 @@ def reiniciar_formularios():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
 
+    ip = request.remote_addr
     get_db()
+    app.logger.info("Reiniciar formularios ip=%s", ip)
 
     g.cursor.execute("DELETE FROM ponderacion_admin")
     g.cursor.execute("DELETE FROM respuesta_detalle")
@@ -517,6 +617,7 @@ def reiniciar_formularios():
     for key in list(BLOQUEO_CACHE.keys()):
         invalidate_bloqueo_cache(*key)
     invalidate_ranking_cache()
+    app.logger.info("Reinicio completado ip=%s", ip)
     flash("Todos los formularios han sido reiniciados.")
     return redirect(url_for("administrar_formularios"))
 
@@ -525,6 +626,7 @@ def reiniciar_formularios():
 def abrir_respuesta(id_respuesta):
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    ip = request.remote_addr
 
     get_db()
     g.cursor.execute(
@@ -539,6 +641,13 @@ def abrir_respuesta(id_respuesta):
     g.conn.commit()
     if datos:
         invalidate_bloqueo_cache(datos["id_usuario"], datos["id_formulario"])
+        app.logger.info(
+            "Respuesta %s reabierta usuario=%s formulario=%s ip=%s",
+            id_respuesta,
+            datos["id_usuario"],
+            datos["id_formulario"],
+            ip,
+        )
     invalidate_ranking_cache()
     flash("Respuesta reabierta correctamente.")
     return redirect(url_for("panel_admin"))
@@ -549,9 +658,11 @@ def administrar_factores():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
 
+    ip = request.remote_addr
     get_db()
     g.cursor.execute("SELECT * FROM factor ORDER BY id")
     factores = g.cursor.fetchall()
+    app.logger.info("Admin factores inicio ip=%s total=%s", ip, len(factores))
 
     if request.method == "POST":
         try:
@@ -582,6 +693,7 @@ def administrar_factores():
             g.conn.commit()
         except Exception:
             g.conn.rollback()
+            app.logger.exception("Error al actualizar factores ip=%s", ip)
             flash("Error al actualizar los factores.")
             return redirect(url_for("administrar_factores"))
 
@@ -589,6 +701,7 @@ def administrar_factores():
         if nuevo_factor:
             flash("Nuevo factor agregado correctamente.")
 
+        app.logger.info("Factores actualizados ip=%s", ip)
         flash("Factores actualizados correctamente.")
         return redirect(url_for("administrar_factores"))
 
@@ -604,6 +717,8 @@ def administrar_factores():
 def detalle_respuesta(id_respuesta):
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    ip = request.remote_addr
+    app.logger.info("detalle_respuesta inicio id=%s ip=%s", id_respuesta, ip)
     get_db()
     # Datos generales
     g.cursor.execute(
@@ -618,6 +733,7 @@ def detalle_respuesta(id_respuesta):
         (id_respuesta,),
     )
     respuesta = g.cursor.fetchone()
+    app.logger.info("Datos generales respuesta=%s", respuesta)
 
     # Factores con valor del usuario + ponderación previa
     g.cursor.execute(
@@ -634,6 +750,9 @@ def detalle_respuesta(id_respuesta):
         (id_respuesta,),
     )
     factores = g.cursor.fetchall()
+    app.logger.info(
+        "Factores respuesta=%s total=%s", id_respuesta, len(factores)
+    )
 
     # Ranking acumulado (de todas las ponderaciones globales)
     g.cursor.execute(
@@ -647,7 +766,11 @@ def detalle_respuesta(id_respuesta):
     """
     )
     ranking = g.cursor.fetchall()
+    app.logger.info(
+        "Ranking respuesta=%s total=%s", id_respuesta, len(ranking)
+    )
 
+    app.logger.info("Render detalle_respuesta id=%s", id_respuesta)
     return render_template(
         "admin_detalle.html", respuesta=respuesta, factores=factores, ranking=ranking
     )
@@ -662,13 +785,19 @@ def detalle_respuesta(id_respuesta):
 def guardar_ponderacion():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    ip = request.remote_addr
     id_respuesta_raw = request.form.get("id_respuesta")
+    app.logger.info(
+        "guardar_ponderacion inicio id_respuesta=%s ip=%s", id_respuesta_raw, ip
+    )
     if not id_respuesta_raw:
+        app.logger.info("Falta id_respuesta ip=%s", ip)
         flash("Falta el identificador de la respuesta.")
         return redirect(url_for("panel_admin"))
     try:
         id_respuesta = int(id_respuesta_raw)
     except ValueError:
+        app.logger.info("id_respuesta inválido=%s ip=%s", id_respuesta_raw, ip)
         flash("El identificador de la respuesta debe ser un número entero.")
         return redirect(url_for("panel_admin"))
 
@@ -710,6 +839,7 @@ def guardar_ponderacion():
     g.conn.commit()
     invalidate_ranking_cache()
 
+    app.logger.info("Ponderaciones guardadas id_respuesta=%s ip=%s", id_respuesta, ip)
     flash("Ponderaciones guardadas correctamente.")
     return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
 
@@ -723,6 +853,8 @@ def guardar_ponderacion():
 def vista_ranking():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+    ip = request.remote_addr
+    app.logger.info("vista_ranking inicio ip=%s", ip)
     get_db()
     # Contar formularios asignados y formularios con respuesta
     g.cursor.execute("SELECT COUNT(*) AS total FROM asignacion")
@@ -789,6 +921,9 @@ def vista_ranking():
     estado_ranking = None
     if not ranking:
         estado_ranking = "sin_datos"
+    app.logger.info(
+        "vista_ranking resultados ip=%s total=%s", ip, len(ranking)
+    )
 
     return render_template(
         "admin_ranking.html",
