@@ -554,35 +554,40 @@ def administrar_factores():
     factores = g.cursor.fetchall()
 
     if request.method == "POST":
-        # Actualizar los factores existentes
-        for f in factores:
-            nombre = request.form.get(f"nombre_{f['id']}")
-            descripcion = request.form.get(f"descripcion_{f['id']}")
-            color = request.form.get(f"color_{f['id']}")
-            g.cursor.execute(
-                "UPDATE factor SET nombre=%s, descripcion=%s, color=%s WHERE id=%s",
-                (nombre, descripcion, color, f["id"]),
-            )
+        try:
+            g.conn.start_transaction()
 
-        g.conn.commit()
+            # Actualizar los factores existentes
+            for f in factores:
+                nombre = request.form.get(f"nombre_{f['id']}")
+                descripcion = request.form.get(f"descripcion_{f['id']}")
+                color = request.form.get(f"color_{f['id']}")
+                g.cursor.execute(
+                    "UPDATE factor SET nombre=%s, descripcion=%s, color=%s WHERE id=%s",
+                    (nombre, descripcion, color, f["id"]),
+                )
 
-        # Insertar un nuevo factor si se proporcionan los campos
-        cache_invalidated = False
-        nuevo_nombre = request.form.get("nuevo_nombre")
-        nuevo_descripcion = request.form.get("nuevo_descripcion")
-        nuevo_color = request.form.get("nuevo_color")
-        if nuevo_nombre and nuevo_descripcion and nuevo_color:
-            g.cursor.execute(
-                "INSERT INTO factor (nombre, descripcion, color) VALUES (%s, %s, %s)",
-                (nuevo_nombre, nuevo_descripcion, nuevo_color),
-            )
+            # Insertar un nuevo factor si se proporcionan los campos
+            nuevo_nombre = request.form.get("nuevo_nombre")
+            nuevo_descripcion = request.form.get("nuevo_descripcion")
+            nuevo_color = request.form.get("nuevo_color")
+            nuevo_factor = False
+            if nuevo_nombre and nuevo_descripcion and nuevo_color:
+                g.cursor.execute(
+                    "INSERT INTO factor (nombre, descripcion, color) VALUES (%s, %s, %s)",
+                    (nuevo_nombre, nuevo_descripcion, nuevo_color),
+                )
+                nuevo_factor = True
+
             g.conn.commit()
-            invalidate_factores_cache()
-            cache_invalidated = True
-            flash("Nuevo factor agregado correctamente.")
+        except Exception:
+            g.conn.rollback()
+            flash("Error al actualizar los factores.")
+            return redirect(url_for("administrar_factores"))
 
-        if not cache_invalidated:
-            invalidate_factores_cache()
+        invalidate_factores_cache()
+        if nuevo_factor:
+            flash("Nuevo factor agregado correctamente.")
 
         flash("Factores actualizados correctamente.")
         return redirect(url_for("administrar_factores"))
