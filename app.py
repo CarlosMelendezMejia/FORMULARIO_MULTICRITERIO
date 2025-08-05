@@ -813,7 +813,7 @@ def handle_bad_request(error):
 
 
 @app.errorhandler(404)
-def handle_bad_request(error):
+def handle_not_found(error):
     return render_template("error_404.html"), 404
 
 
