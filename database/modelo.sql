@@ -73,7 +73,7 @@ CREATE TABLE ponderacion_admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_respuesta INT NOT NULL,
     id_factor INT NOT NULL,
-    peso_admin FLOAT NOT NULL,  -- Puedes usar INT si prefieres solo enteros
+    peso_admin DECIMAL(4,1) NOT NULL,  -- Puedes usar INT si prefieres solo enteros
     FOREIGN KEY (id_respuesta) REFERENCES respuesta(id) ON DELETE CASCADE,
     FOREIGN KEY (id_factor) REFERENCES factor(id),
     UNIQUE (id_respuesta, id_factor)

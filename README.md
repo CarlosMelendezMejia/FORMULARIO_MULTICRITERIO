@@ -73,6 +73,19 @@ Si deseas mantener un rango acotado, reemplaza la última línea por:
 
 Sustituye `<numero_maximo_de_factores>` por la cantidad máxima de factores que esperas manejar.
 
+### Cambiar `ponderacion_admin.peso_admin` a `DECIMAL(4,1)`
+
+Para evitar problemas de precisión con los valores de ponderación, la columna
+`peso_admin` ahora utiliza el tipo `DECIMAL(4,1)`. En instalaciones existentes
+puedes aplicar la migración con:
+
+```bash
+mysql -u <usuario> -p < database/migrate_peso_admin_decimal.sql
+```
+
+Este script crea una columna temporal, copia los valores existentes, elimina la
+columna original de tipo `FLOAT` y renombra la columna temporal.
+
 ## Caché de bloqueos
 
 El estado de bloqueo de cada formulario se almacena en memoria durante un
