@@ -416,7 +416,8 @@ def administrar_formularios():
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'formulario'
         """
     )
-    siguiente_id = g.cursor.fetchone()["siguiente_id"]
+    row = g.cursor.fetchone()
+    siguiente_id = int(row["siguiente_id"] or 1)
     default_name = f"Formulario {siguiente_id:02d}"
 
     if request.method == "POST":
