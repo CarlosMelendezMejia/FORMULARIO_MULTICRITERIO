@@ -481,10 +481,11 @@ def administrar_factores():
                 "UPDATE factor SET nombre=%s, descripcion=%s WHERE id=%s",
                 (nombre, descripcion, f["id"]),
             )
-            g.conn.commit()
-            invalidate_factores_cache()
+
+        g.conn.commit()
 
         # Insertar un nuevo factor si se proporcionan los campos
+        cache_invalidated = False
         nuevo_nombre = request.form.get("nuevo_nombre")
         nuevo_descripcion = request.form.get("nuevo_descripcion")
         if nuevo_nombre and nuevo_descripcion:
@@ -494,7 +495,11 @@ def administrar_factores():
             )
             g.conn.commit()
             invalidate_factores_cache()
+            cache_invalidated = True
             flash("Nuevo factor agregado correctamente.")
+
+        if not cache_invalidated:
+            invalidate_factores_cache()
 
         flash("Factores actualizados correctamente.")
         return redirect(url_for("administrar_factores"))
