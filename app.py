@@ -464,23 +464,36 @@ def administrar_factores():
         return redirect(url_for("admin_login"))
 
     get_db()
-
-    if request.method == "POST":
-        datos = []
-        for i in range(1, 11):
-            nombre = request.form.get(f"nombre_{i}")
-            descripcion = request.form.get(f"descripcion_{i}")
-            datos.append((nombre, descripcion, i))
-        g.cursor.executemany(
-            "UPDATE factor SET nombre=%s, descripcion=%s WHERE id=%s", datos
-        )
-        g.conn.commit()
-        flash("Factores actualizados correctamente.")
-        invalidate_factores_cache()
-        return redirect(url_for("administrar_factores"))
-
     g.cursor.execute("SELECT * FROM factor ORDER BY id")
     factores = g.cursor.fetchall()
+
+    if request.method == "POST":
+        # Actualizar los factores existentes
+        for f in factores:
+            nombre = request.form.get(f"nombre_{f['id']}")
+            descripcion = request.form.get(f"descripcion_{f['id']}")
+            g.cursor.execute(
+                "UPDATE factor SET nombre=%s, descripcion=%s WHERE id=%s",
+                (nombre, descripcion, f["id"]),
+            )
+            g.conn.commit()
+            invalidate_factores_cache()
+
+        # Insertar un nuevo factor si se proporcionan los campos
+        nuevo_nombre = request.form.get("nuevo_nombre")
+        nuevo_descripcion = request.form.get("nuevo_descripcion")
+        if nuevo_nombre and nuevo_descripcion:
+            g.cursor.execute(
+                "INSERT INTO factor (nombre, descripcion) VALUES (%s, %s)",
+                (nuevo_nombre, nuevo_descripcion),
+            )
+            g.conn.commit()
+            invalidate_factores_cache()
+            flash("Nuevo factor agregado correctamente.")
+
+        flash("Factores actualizados correctamente.")
+        return redirect(url_for("administrar_factores"))
+
     return render_template("admin_factores.html", factores=factores)
 
 
