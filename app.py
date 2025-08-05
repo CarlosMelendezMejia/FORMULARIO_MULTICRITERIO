@@ -655,12 +655,15 @@ def detalle_respuesta(id_respuesta):
 def guardar_ponderacion():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
-    id_respuesta_raw = request.form.get("id_respuesta", "")
+    id_respuesta_raw = request.form.get("id_respuesta")
+    if not id_respuesta_raw:
+        flash("Falta el identificador de la respuesta.")
+        return redirect(url_for("panel_admin"))
     try:
         id_respuesta = int(id_respuesta_raw)
     except ValueError:
         flash("El identificador de la respuesta debe ser un número entero.")
-        return redirect(url_for("detalle_respuesta", id_respuesta=0))
+        return redirect(url_for("panel_admin"))
 
     get_db()
 
