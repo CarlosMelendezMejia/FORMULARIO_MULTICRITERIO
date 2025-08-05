@@ -48,7 +48,9 @@
                         <tbody>
                             {% for f in factores %}
                             <tr>
-                                <td class="factor-name">{{ f.nombre }}</td>
+                                <td class="factor-name">
+                                    <span class="color-label" style="background-color: {{ f.color or '#cccccc' }};">{{ f.nombre }}</span>
+                                </td>
                                 <td class="factor-desc text-start">{{ f.descripcion }}</td>
                                 <td>{{ f.valor_usuario }}</td>
                                 <td>
