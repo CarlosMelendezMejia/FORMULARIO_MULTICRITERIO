@@ -156,3 +156,23 @@ def test_ranking_cache_invalidation_after_ponderacion(monkeypatch):
         resp = client.get("/admin/ranking")
         assert resp.status_code == 200
         assert cursor.execute_count == 4
+
+
+def test_vista_ranking_incluye_color(monkeypatch):
+    cursor = DummyCursor(
+        fetchone_results=[{"total": 1}, {"total": 1}],
+        fetchall_results=[[], [{"nombre": "Factor C", "total": 5, "color": "#123456"}]],
+    )
+    conn = DummyConnection(cursor)
+    monkeypatch.setattr(db, "get_connection", lambda: conn)
+    monkeypatch.setattr(app_module, "get_connection", lambda: conn)
+    monkeypatch.setattr(app_module, "get_factores", lambda: [object()])
+
+    cache.delete(RANKING_CACHE_KEY)
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess["is_admin"] = True
+        resp = client.get("/admin/ranking")
+        assert resp.status_code == 200
+        assert b"background-color: #123456" in resp.data
