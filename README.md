@@ -52,3 +52,23 @@ WHERE n <= 54;
 
 Ejecuta ese fragmento en la base de datos `sistema_formularios` para disponer de los formularios desde el inicio.
 
+## Actualización de esquema
+
+La columna `respuesta_detalle.valor_usuario` ahora valida únicamente que el valor sea mayor o igual a 1, eliminando el límite superior de 10 para permitir cualquier número de factores.
+
+Para actualizar una instalación existente, ejecuta el siguiente comando (ajusta el nombre del `CHECK` original según tu instancia, puedes consultarlo con `SHOW CREATE TABLE respuesta_detalle;`):
+
+```sql
+ALTER TABLE respuesta_detalle
+  DROP CHECK respuesta_detalle_chk_1,
+  ADD CONSTRAINT chk_valor_usuario CHECK (valor_usuario >= 1);
+```
+
+Si deseas mantener un rango acotado, reemplaza la última línea por:
+
+```sql
+  ADD CONSTRAINT chk_valor_usuario CHECK (valor_usuario BETWEEN 1 AND <numero_maximo_de_factores>);
+```
+
+Sustituye `<numero_maximo_de_factores>` por la cantidad máxima de factores que esperas manejar.
+

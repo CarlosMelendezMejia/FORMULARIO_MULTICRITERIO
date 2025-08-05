@@ -45,12 +45,13 @@ CREATE TABLE respuesta (
     UNIQUE (id_usuario, id_formulario)
 );
 
--- Detalle de las respuestas por factor (valor de 1 a 10, sin repetir por respuesta)
+-- Detalle de las respuestas por factor (valor >= 1, sin repetir por respuesta)
 CREATE TABLE respuesta_detalle (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_respuesta INT NOT NULL,
     id_factor INT NOT NULL,
-    valor_usuario INT NOT NULL CHECK (valor_usuario BETWEEN 1 AND 10),
+    valor_usuario INT NOT NULL,
+    CONSTRAINT chk_valor_usuario CHECK (valor_usuario >= 1),
     FOREIGN KEY (id_respuesta) REFERENCES respuesta(id) ON DELETE CASCADE,
     FOREIGN KEY (id_factor) REFERENCES factor(id),
     UNIQUE (id_respuesta, valor_usuario),  -- impide duplicar valores
