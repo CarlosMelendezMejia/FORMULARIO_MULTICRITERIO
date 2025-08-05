@@ -40,11 +40,16 @@ CREATE TABLE respuesta (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     id_formulario INT NOT NULL,
+    bloqueado TINYINT(1) NOT NULL DEFAULT 1,
     fecha_respuesta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id),
     FOREIGN KEY (id_formulario) REFERENCES formulario(id),
     UNIQUE (id_usuario, id_formulario)
 );
+
+-- Índice para búsquedas por usuario, formulario y bloqueo
+CREATE INDEX idx_respuesta_usuario_formulario_bloqueado
+    ON respuesta (id_usuario, id_formulario, bloqueado);
 
 -- Detalle de las respuestas por factor (valor >= 1, sin repetir por respuesta)
 CREATE TABLE respuesta_detalle (
