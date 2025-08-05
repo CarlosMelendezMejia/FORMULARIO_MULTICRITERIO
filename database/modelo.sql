@@ -31,7 +31,8 @@ CREATE TABLE asignacion (
 CREATE TABLE factor (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    descripcion TEXT NOT NULL
+    descripcion TEXT NOT NULL,
+    color VARCHAR(7) NOT NULL
 );
 
 -- Tabla de respuestas de los usuarios a los factores
@@ -87,17 +88,17 @@ FROM (SELECT @row := @row + 1 AS n FROM (SELECT 0 UNION ALL SELECT 1 UNION ALL S
 WHERE n <= 54;
 
 -- Insertar los 10 factores (nombres y descripciones ejemplo)
-INSERT INTO factor (nombre, descripcion) VALUES
-('Formación académica', 'Conjunto de conocimientos, habilidades y destrezas que se adquieren en la educación formal y a través de los diversos niveles o grados de escolarización que permiten desempeñarse en un ambiente laboral específico. Incluye también la formación académica en educación u otros aspectos relacionados con la didáctica, psicología educativa o materias afines.'),
-('Actualización en Formación y Profesionalización Docente', 'Conjunto de actividades académicas que se cursan y acreditan las cuales permiten introducir, renovar y perfeccionar el conocimiento en materia de educación universitaria que favorecen el desempeño como formador.'),
-('Reconocimientos y distinciones', 'Conjunto de premios, honores o menciones especiales que se han recibido en reconocimiento a la excelencia, logros o contribuciones en materia de formación docente y docencia universitaria.'),
-('Experiencia en la educación universitaria', 'Práctica adquirida a través del tiempo en el desempeño de una actividad profesional y académica en la educación universitaria, la cual puede determinarse en temporalidades (0-6 meses, 6 meses-1 año, 2 años, 3 años 5 o más años).'),
-('Conocimientos y habilidades específicas', 'Conjunto de conocimientos y hablidades específicas en temas, técnicas, metodologías o habilidades para desempeñarse como formador del profesorado universitario.'),
-('Productividad académica', 'Se refiere a las contribuciones intelectuales que ha realizado en su campo de conocimiento aplicado a la formación docente tales como: artículos científicos en revistas académicas, ponencias, proyectos de investigación, autoría o coautoría de libros o capítulos.'),
-('Ethos institucional', 'Conjunto de rasgos y modos de comportamiento que conforman el carácter o la identidad de una persona o una comunidad. Para el caso del Ethos de un formador docente de la UNAM, éste estará conformado por el conocimiento de la institución (proyecto educativo), normatividad, valores y código de ética.'),
-('Actitudes', 'Predisposición cognitiva, emocional y conductual ante situaciones, personas o eventos que influye en la manera en que un individuo responde a su entorno.'),
-('Trámites y procesos académico-administrativos', 'Compromiso y resguardo de la documentación oficial, así como el cumplimiento de los procesos de gestión que la institución determine para la certificación de actividades de formación docente.'),
-('Materiales y equipos para la formación docente', 'Resguardo de los equipos de cómputo, materiales didácticos y demás insumos que le sean proporcionados para el desarrollo de actividades para la formación y profesionalización docente.');
+INSERT INTO factor (nombre, descripcion, color) VALUES
+('Formación académica', 'Conjunto de conocimientos, habilidades y destrezas que se adquieren en la educación formal y a través de los diversos niveles o grados de escolarización que permiten desempeñarse en un ambiente laboral específico. Incluye también la formación académica en educación u otros aspectos relacionados con la didáctica, psicología educativa o materias afines.', '#FF5733'),
+('Actualización en Formación y Profesionalización Docente', 'Conjunto de actividades académicas que se cursan y acreditan las cuales permiten introducir, renovar y perfeccionar el conocimiento en materia de educación universitaria que favorecen el desempeño como formador.', '#33C1FF'),
+('Reconocimientos y distinciones', 'Conjunto de premios, honores o menciones especiales que se han recibido en reconocimiento a la excelencia, logros o contribuciones en materia de formación docente y docencia universitaria.', '#FF33A8'),
+('Experiencia en la educación universitaria', 'Práctica adquirida a través del tiempo en el desempeño de una actividad profesional y académica en la educación universitaria, la cual puede determinarse en temporalidades (0-6 meses, 6 meses-1 año, 2 años, 3 años 5 o más años).', '#75FF33'),
+('Conocimientos y habilidades específicas', 'Conjunto de conocimientos y hablidades específicas en temas, técnicas, metodologías o habilidades para desempeñarse como formador del profesorado universitario.', '#FFC300'),
+('Productividad académica', 'Se refiere a las contribuciones intelectuales que ha realizado en su campo de conocimiento aplicado a la formación docente tales como: artículos científicos en revistas académicas, ponencias, proyectos de investigación, autoría o coautoría de libros o capítulos.', '#DAF7A6'),
+('Ethos institucional', 'Conjunto de rasgos y modos de comportamiento que conforman el carácter o la identidad de una persona o una comunidad. Para el caso del Ethos de un formador docente de la UNAM, éste estará conformado por el conocimiento de la institución (proyecto educativo), normatividad, valores y código de ética.', '#C70039'),
+('Actitudes', 'Predisposición cognitiva, emocional y conductual ante situaciones, personas o eventos que influye en la manera en que un individuo responde a su entorno.', '#900C3F'),
+('Trámites y procesos académico-administrativos', 'Compromiso y resguardo de la documentación oficial, así como el cumplimiento de los procesos de gestión que la institución determine para la certificación de actividades de formación docente.', '#581845'),
+('Materiales y equipos para la formación docente', 'Resguardo de los equipos de cómputo, materiales didácticos y demás insumos que le sean proporcionados para el desarrollo de actividades para la formación y profesionalización docente.', '#1C2833');
 
 
 
