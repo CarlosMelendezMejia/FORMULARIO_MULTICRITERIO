@@ -145,6 +145,14 @@ def mostrar_formulario(id_usuario):
 
     id_formulario = asignacion["id_formulario"]
 
+    # Verificar si el formulario ya fue respondido y está bloqueado
+    g.cursor.execute(
+        "SELECT 1 FROM respuesta WHERE id_usuario = %s AND id_formulario = %s AND bloqueado = 1",
+        (id_usuario, id_formulario),
+    )
+    if g.cursor.fetchone():
+        return render_template("formulario_bloqueado.html")
+
     # Obtener factores (con caché)
     factores = get_factores()
     num_factores = len(factores)
