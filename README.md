@@ -94,3 +94,18 @@ que altere el campo `bloqueado` debe llamar a `invalidate_bloqueo_cache` con
 el identificador del usuario y del formulario para eliminar la entrada
 correspondiente y evitar inconsistencias visibles.
 
+## Depuración de logs
+
+Para fines de desarrollo, la aplicación incluye una página que muestra el
+contenido del archivo de log (`static/logs/app.log`). Esta página está
+deshabilitada por defecto y no debe usarse en producción.
+
+1. Activa la característica estableciendo la variable de entorno
+   `ENABLE_DEBUG_LOGS=1` antes de ejecutar la aplicación.
+2. Inicia la aplicación normalmente (`python app.py`).
+3. Visita `http://localhost:5000/debug/logs_test` en tu navegador. El contenido
+   se actualiza cada pocos segundos consultando el endpoint `/debug/logs`.
+
+Recuerda desactivar la variable de entorno en entornos públicos para evitar
+exponer información sensible del sistema.
+
