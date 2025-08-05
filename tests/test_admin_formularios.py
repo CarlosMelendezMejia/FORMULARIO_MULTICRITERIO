@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -10,6 +11,7 @@ import app as app_module
 app = app_module.app
 cache = app_module.cache
 RANKING_CACHE_KEY = app_module.RANKING_CACHE_KEY
+BLOQUEO_CACHE = app_module.BLOQUEO_CACHE
 
 class DummyCursor:
     def __init__(self, fetchone_results=None):
@@ -110,8 +112,11 @@ def test_abrir_formulario_requires_admin(monkeypatch):
 
 
 def test_abrir_formulario(monkeypatch):
-    cursor, conn = create_dummy(monkeypatch)
+    fetchone_results = [{"id_usuario": 2, "id_formulario": 7}]
+    cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
     cache.set(RANKING_CACHE_KEY, {"ranking": "x"})
+    BLOQUEO_CACHE.clear()
+    BLOQUEO_CACHE[(2, 7)] = {"bloqueado": True, "timestamp": time.time()}
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -121,7 +126,9 @@ def test_abrir_formulario(monkeypatch):
         assert resp.headers["Location"].endswith("/admin")
 
     assert cursor.queries == [
+        ("SELECT id_usuario, id_formulario FROM respuesta WHERE id = %s", (5,)),
         ("UPDATE respuesta SET bloqueado = 0 WHERE id = %s", (5,)),
     ]
     assert conn.commit_called
     assert cache.get(RANKING_CACHE_KEY) is None
+    assert (2, 7) not in BLOQUEO_CACHE

@@ -44,6 +44,34 @@ FACTORES_CACHE = {"data": None, "timestamp": 0}
 FACTORES_CACHE_TTL = int(os.getenv("FACTORES_CACHE_TTL", 300))
 
 
+# Cache ligero para estado de bloqueo por (id_usuario, id_formulario)
+BLOQUEO_CACHE = {}
+BLOQUEO_CACHE_TTL = int(os.getenv("BLOQUEO_CACHE_TTL", 60))
+
+
+def is_formulario_bloqueado(id_usuario: int, id_formulario: int) -> bool:
+    """Devuelve True si el formulario está bloqueado para el usuario."""
+    key = (id_usuario, id_formulario)
+    now = time.time()
+    entry = BLOQUEO_CACHE.get(key)
+    if entry and now - entry["timestamp"] <= BLOQUEO_CACHE_TTL:
+        return entry["bloqueado"]
+
+    get_db()
+    g.cursor.execute(
+        "SELECT 1 FROM respuesta WHERE id_usuario = %s AND id_formulario = %s AND bloqueado = 1",
+        (id_usuario, id_formulario),
+    )
+    bloqueado = g.cursor.fetchone() is not None
+    BLOQUEO_CACHE[key] = {"bloqueado": bloqueado, "timestamp": now}
+    return bloqueado
+
+
+def invalidate_bloqueo_cache(id_usuario: int, id_formulario: int):
+    """Elimina la entrada de caché para un usuario y formulario."""
+    BLOQUEO_CACHE.pop((id_usuario, id_formulario), None)
+
+
 def get_factores():
     """Obtiene la lista de factores usando caché en memoria."""
     now = time.time()
@@ -145,12 +173,8 @@ def mostrar_formulario(id_usuario):
 
     id_formulario = asignacion["id_formulario"]
 
-    # Verificar si el formulario ya fue respondido y está bloqueado
-    g.cursor.execute(
-        "SELECT 1 FROM respuesta WHERE id_usuario = %s AND id_formulario = %s AND bloqueado = 1",
-        (id_usuario, id_formulario),
-    )
-    if g.cursor.fetchone():
+    # Verificar si el formulario ya fue respondido y está bloqueado (usa caché)
+    if is_formulario_bloqueado(id_usuario, id_formulario):
         return render_template("formulario_bloqueado.html")
 
     # Obtener factores (con caché)
@@ -199,6 +223,10 @@ def guardar_respuesta():
     id_usuario = int(request.form["usuario_id"])
     id_formulario = int(request.form["formulario_id"])
     exit_redirect = request.form.get("exit_redirect")
+
+    # Verificar bloqueo mediante caché antes de acceder a la base de datos
+    if is_formulario_bloqueado(id_usuario, id_formulario):
+        return render_template("formulario_bloqueado.html")
 
     get_db()
     num_factores = len(get_factores())
@@ -303,6 +331,8 @@ def guardar_respuesta():
         flash("Error al guardar la respuesta. Intenta nuevamente.")
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
+    # Limpiar cachés dependientes
+    invalidate_bloqueo_cache(id_usuario, id_formulario)
     invalidate_ranking_cache()
     if exit_redirect:
         return redirect(url_for("index"))
@@ -487,10 +517,17 @@ def abrir_respuesta(id_respuesta):
 
     get_db()
     g.cursor.execute(
+        "SELECT id_usuario, id_formulario FROM respuesta WHERE id = %s",
+        (id_respuesta,),
+    )
+    datos = g.cursor.fetchone()
+    g.cursor.execute(
         "UPDATE respuesta SET bloqueado = 0 WHERE id = %s",
         (id_respuesta,),
     )
     g.conn.commit()
+    if datos:
+        invalidate_bloqueo_cache(datos["id_usuario"], datos["id_formulario"])
     invalidate_ranking_cache()
     flash("Respuesta reabierta correctamente.")
     return redirect(url_for("panel_admin"))
