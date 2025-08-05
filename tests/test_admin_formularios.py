@@ -98,3 +98,30 @@ def test_eliminar_formulario_invalida_cache(monkeypatch):
     ]
     assert conn.commit_called
     assert cache.get(RANKING_CACHE_KEY) is None
+
+
+def test_abrir_formulario_requires_admin(monkeypatch):
+    cursor, conn = create_dummy(monkeypatch)
+    with app.test_client() as client:
+        resp = client.post("/admin/formularios/abrir/1")
+        assert resp.status_code == 302
+        assert "/admin/login" in resp.headers["Location"]
+        assert cursor.queries == []
+
+
+def test_abrir_formulario(monkeypatch):
+    cursor, conn = create_dummy(monkeypatch)
+    cache.set(RANKING_CACHE_KEY, {"ranking": "x"})
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess["is_admin"] = True
+        resp = client.post("/admin/formularios/abrir/5")
+        assert resp.status_code == 302
+        assert resp.headers["Location"].endswith("/admin")
+
+    assert cursor.queries == [
+        ("UPDATE respuesta SET bloqueado = 0 WHERE id = %s", (5,)),
+    ]
+    assert conn.commit_called
+    assert cache.get(RANKING_CACHE_KEY) is None

@@ -57,6 +57,7 @@
                             <th>Apellidos</th>
                             <th>Formulario</th>
                             <th>Fecha de Respuesta</th>
+                            <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -74,11 +75,17 @@
                                     Fecha no disponible
                                 {% endif %}
                             </td>
+                            <td class="text-center">{{ 'Bloqueado' if r.bloqueado else 'Abierto' }}</td>
                             <td class="text-center">
                                 <a href="{{ url_for('detalle_respuesta', id_respuesta=r.id_respuesta) }}"
                                     class="btn btn-sm btn-primary">
                                     Ver Detalle
                                 </a>
+                                {% if r.bloqueado %}
+                                <form method="POST" action="{{ url_for('abrir_respuesta', id_respuesta=r.id_respuesta) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-success">Reabrir</button>
+                                </form>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

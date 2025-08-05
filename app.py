@@ -346,11 +346,11 @@ def panel_admin():
                u.apellidos,
                f.nombre AS formulario,
                r.fecha_respuesta,
-               DATE_FORMAT(r.fecha_respuesta, '%Y-%m-%d %H:%i') AS fecha_respuesta_fmt
+               DATE_FORMAT(r.fecha_respuesta, '%Y-%m-%d %H:%i') AS fecha_respuesta_fmt,
+               r.bloqueado
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id
-        WHERE r.bloqueado = 0
         ORDER BY r.fecha_respuesta DESC
         LIMIT %s OFFSET %s
         """,
@@ -478,6 +478,22 @@ def reiniciar_formularios():
     invalidate_ranking_cache()
     flash("Todos los formularios han sido reiniciados.")
     return redirect(url_for("administrar_formularios"))
+
+
+@app.route("/admin/formularios/abrir/<int:id_respuesta>", methods=["POST"])
+def abrir_respuesta(id_respuesta):
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+
+    get_db()
+    g.cursor.execute(
+        "UPDATE respuesta SET bloqueado = 0 WHERE id = %s",
+        (id_respuesta,),
+    )
+    g.conn.commit()
+    invalidate_ranking_cache()
+    flash("Respuesta reabierta correctamente.")
+    return redirect(url_for("panel_admin"))
 
 
 @app.route("/admin/factores", methods=["GET", "POST"])
