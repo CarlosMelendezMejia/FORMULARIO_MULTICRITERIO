@@ -477,9 +477,10 @@ def administrar_factores():
         for f in factores:
             nombre = request.form.get(f"nombre_{f['id']}")
             descripcion = request.form.get(f"descripcion_{f['id']}")
+            color = request.form.get(f"color_{f['id']}")
             g.cursor.execute(
-                "UPDATE factor SET nombre=%s, descripcion=%s WHERE id=%s",
-                (nombre, descripcion, f["id"]),
+                "UPDATE factor SET nombre=%s, descripcion=%s, color=%s WHERE id=%s",
+                (nombre, descripcion, color, f["id"]),
             )
 
         g.conn.commit()
@@ -488,10 +489,11 @@ def administrar_factores():
         cache_invalidated = False
         nuevo_nombre = request.form.get("nuevo_nombre")
         nuevo_descripcion = request.form.get("nuevo_descripcion")
-        if nuevo_nombre and nuevo_descripcion:
+        nuevo_color = request.form.get("nuevo_color")
+        if nuevo_nombre and nuevo_descripcion and nuevo_color:
             g.cursor.execute(
-                "INSERT INTO factor (nombre, descripcion) VALUES (%s, %s)",
-                (nuevo_nombre, nuevo_descripcion),
+                "INSERT INTO factor (nombre, descripcion, color) VALUES (%s, %s, %s)",
+                (nuevo_nombre, nuevo_descripcion, nuevo_color),
             )
             g.conn.commit()
             invalidate_factores_cache()

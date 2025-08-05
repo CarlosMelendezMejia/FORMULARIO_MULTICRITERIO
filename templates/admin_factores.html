@@ -35,6 +35,7 @@
                                 <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
+                                <th>Color</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -49,17 +50,23 @@
                                     <input type="text" name="descripcion_{{ f.id }}" class="form-control"
                                            value="{{ f.descripcion }}">
                                 </td>
+                                <td class="text-center">
+                                    <input type="color" name="color_{{ f.id }}" value="{{ f.color }}">
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 <div class="row g-2 mt-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" name="nuevo_nombre" class="form-control" placeholder="Nuevo nombre">
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <input type="text" name="nuevo_descripcion" class="form-control" placeholder="Nueva descripción">
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <input type="color" name="nuevo_color" value="#000000">
                     </div>
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-success w-100">
