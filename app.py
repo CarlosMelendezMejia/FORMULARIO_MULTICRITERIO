@@ -144,6 +144,7 @@ def mostrar_formulario(id_usuario):
 
     # Obtener factores (con caché)
     factores = get_factores()
+    num_factores = len(factores)
 
     # Obtener datos del usuario
     g.cursor.execute("SELECT * FROM usuario WHERE id = %s", (id_usuario,))
@@ -169,6 +170,7 @@ def mostrar_formulario(id_usuario):
         usuario_id=id_usuario,
         formulario=asignacion,
         factores=factores,
+        num_factores=num_factores,
         usuario=usuario,
         respuestas_previas=respuestas_dict,
     )
@@ -185,16 +187,19 @@ def guardar_respuesta():
     id_formulario = int(request.form["formulario_id"])
     exit_redirect = request.form.get("exit_redirect")
 
+    get_db()
+    num_factores = len(get_factores())
+
     # Datos personales
     nombre = sanitize(request.form["nombre"].strip())
     apellidos = sanitize(request.form["apellidos"].strip())
     cargo = sanitize(request.form["cargo"].strip())
     dependencia = sanitize(request.form["dependencia"].strip())
 
-    # 1. Leer los 10 valores únicos de los factores
+    # 1. Leer los valores únicos de los factores
     valores = []
     try:
-        for i in range(1, 11):
+        for i in range(1, num_factores + 1):
             factor_key = f"factor_id_{i}"
             valor_key = f"valor_{i}"
             if factor_key not in request.form or valor_key not in request.form:
@@ -202,8 +207,8 @@ def guardar_respuesta():
                 return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
             factor_id = int(request.form[factor_key])
             valor = int(request.form[valor_key])
-            if not 1 <= valor <= 10:
-                flash("Cada valor debe estar entre 1 y 10.")
+            if not 1 <= valor <= num_factores:
+                flash(f"Cada valor debe estar entre 1 y {num_factores}.")
                 return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
             valores.append((factor_id, valor))
     except ValueError:
@@ -211,12 +216,11 @@ def guardar_respuesta():
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
     usados = [v[1] for v in valores]
-    if len(set(usados)) != 10:
-        flash("Cada valor del 1 al 10 debe ser único. No se permiten duplicados.")
+    if len(set(usados)) != num_factores:
+        flash(f"Cada valor del 1 al {num_factores} debe ser único. No se permiten duplicados.")
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
     # 2. Guardar información en la base de datos dentro de una transacción
-    get_db()
     try:
         g.conn.start_transaction()
 
