@@ -307,7 +307,7 @@ def guardar_respuesta():
             INSERT INTO respuesta (id_usuario, id_formulario, bloqueado)
             VALUES (%s, %s, %s)
         """,
-            (id_usuario, id_formulario, 0),
+            (id_usuario, id_formulario, 1),
         )
         id_respuesta = g.cursor.lastrowid
 

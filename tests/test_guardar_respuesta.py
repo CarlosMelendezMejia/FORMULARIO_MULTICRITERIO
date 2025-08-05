@@ -80,7 +80,7 @@ def test_guardar_respuesta_cache_bloqueado_evita_db(monkeypatch):
 
 
 def test_guardar_respuesta_invalida_cache(monkeypatch):
-    cursor, conn = create_dummy(monkeypatch, fetchone_results=[None])
+    cursor, conn = create_dummy(monkeypatch, fetchone_results=[None, {"dummy": 1}, None])
     monkeypatch.setattr(app_module, "get_factores", lambda: [{"id": 1}])
 
     BLOQUEO_CACHE.clear()
@@ -100,12 +100,20 @@ def test_guardar_respuesta_invalida_cache(monkeypatch):
     with app.test_client() as client:
         resp = client.post("/guardar_respuesta", data=data)
         assert resp.status_code == 200
+        assert b"Formulario enviado y bloqueado" in resp.data
+        assert (1, 2) not in BLOQUEO_CACHE
 
-    assert len(cursor.queries) == 4
+        resp2 = client.post("/guardar_respuesta", data=data)
+        assert resp2.status_code == 200
+        assert b"El formulario ya se respondi" in resp2.data
+
+    assert len(cursor.queries) == 5
     assert "UPDATE usuario" in cursor.queries[0][0]
     assert "SELECT id FROM respuesta" in cursor.queries[1][0]
     assert "INSERT INTO respuesta" in cursor.queries[2][0]
+    assert cursor.queries[2][1] == (1, 2, 1)
     assert "INSERT INTO respuesta_detalle" in cursor.queries[3][0]
+    assert "SELECT 1 FROM respuesta" in cursor.queries[4][0]
     assert conn.start_transaction_called
     assert conn.commit_called
-    assert (1, 2) not in BLOQUEO_CACHE
+    assert (1, 2) in BLOQUEO_CACHE and BLOQUEO_CACHE[(1, 2)]["bloqueado"]
