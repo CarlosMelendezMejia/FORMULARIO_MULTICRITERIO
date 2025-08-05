@@ -46,7 +46,7 @@ FACTORES_CACHE_TTL = int(os.getenv("FACTORES_CACHE_TTL", 300))
 
 # Cache ligero para estado de bloqueo por (id_usuario, id_formulario)
 BLOQUEO_CACHE = {}
-BLOQUEO_CACHE_TTL = int(os.getenv("BLOQUEO_CACHE_TTL", 60))
+BLOQUEO_CACHE_TTL = int(os.getenv("BLOQUEO_CACHE_TTL", 30))
 
 
 def is_formulario_bloqueado(id_usuario: int, id_formulario: int) -> bool:
@@ -68,7 +68,12 @@ def is_formulario_bloqueado(id_usuario: int, id_formulario: int) -> bool:
 
 
 def invalidate_bloqueo_cache(id_usuario: int, id_formulario: int):
-    """Elimina la entrada de caché para un usuario y formulario."""
+    """Elimina la entrada de caché para un usuario y formulario.
+
+    Esta función debe llamarse tras cualquier operación que modifique el
+    campo ``bloqueado`` para evitar inconsistencias visibles entre el estado
+    real y el estado almacenado en caché.
+    """
     BLOQUEO_CACHE.pop((id_usuario, id_formulario), None)
 
 
@@ -486,6 +491,9 @@ def eliminar_formulario(id):
         g.cursor.execute("DELETE FROM asignacion WHERE id_formulario = %s", (id,))
         g.cursor.execute("DELETE FROM formulario WHERE id = %s", (id,))
         g.conn.commit()
+        for (uid, fid) in list(BLOQUEO_CACHE.keys()):
+            if fid == id:
+                invalidate_bloqueo_cache(uid, fid)
         invalidate_ranking_cache()
         flash("Formulario eliminado correctamente.")
         return redirect(url_for("administrar_formularios"))
@@ -505,6 +513,8 @@ def reiniciar_formularios():
     g.cursor.execute("DELETE FROM respuesta_detalle")
     g.cursor.execute("DELETE FROM respuesta")
     g.conn.commit()
+    for key in list(BLOQUEO_CACHE.keys()):
+        invalidate_bloqueo_cache(*key)
     invalidate_ranking_cache()
     flash("Todos los formularios han sido reiniciados.")
     return redirect(url_for("administrar_formularios"))
