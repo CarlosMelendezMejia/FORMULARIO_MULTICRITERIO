@@ -19,10 +19,12 @@
 
 .color-label {
   display: inline-block;
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   color: #fff;
   font-size: 0.875rem;
+  font-weight: 500;
+  vertical-align: middle;
 }
 
 body {

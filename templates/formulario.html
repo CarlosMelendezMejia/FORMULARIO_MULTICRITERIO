@@ -110,8 +110,7 @@
                             {% for factor in factores %}
                             <tr>
                                 <td>
-                                    <strong>{{ factor.nombre }}</strong>
-                                    <span class="color-badge ms-2" style="background-color: {{ factor.color or '#cccccc' }};"></span>
+                                    <span class="color-label" style="background-color: {{ factor.color or '#cccccc' }};">{{ factor.nombre }}</span>
                                     <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
                                 </td>
                                 <td>{{ factor.descripcion }}</td>
