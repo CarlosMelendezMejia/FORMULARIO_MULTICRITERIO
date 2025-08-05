@@ -14,6 +14,7 @@ load_dotenv()
 from db import get_connection
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+DEBUG_LOGS_ENABLED = os.getenv("ENABLE_DEBUG_LOGS") == "1"
 
 
 app = Flask(__name__)
@@ -136,6 +137,34 @@ def add_no_cache_headers(response):
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
     return response
+
+
+# ==============================
+# RUTAS DE DEPURACIÓN
+# ==============================
+
+
+@app.route("/debug/logs_test")
+def debug_logs_test():
+    if not DEBUG_LOGS_ENABLED:
+        return "Not found", 404
+    return render_template("logs_test.html")
+
+
+@app.route("/debug/logs")
+def debug_logs():
+    if not DEBUG_LOGS_ENABLED:
+        return "Not found", 404
+    log_path = os.path.join("static", "logs", "app.log")
+    if not os.path.exists(log_path):
+        return "", 200, {"Content-Type": "text/plain; charset=utf-8"}
+    with open(log_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    return (
+        content,
+        200,
+        {"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache"},
+    )
 
 
 # ==============================

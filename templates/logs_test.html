@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Logs de aplicación</title>
+</head>
+<body>
+    <h1>Logs de aplicación</h1>
+    <pre id="log-output" style="background:#f0f0f0; padding:1em; overflow:auto;"></pre>
+    <script>
+    async function fetchLogs() {
+        try {
+            const resp = await fetch('/debug/logs');
+            if (resp.ok) {
+                const text = await resp.text();
+                document.getElementById('log-output').textContent = text;
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+    setInterval(fetchLogs, 2000);
+    fetchLogs();
+    </script>
+</body>
+</html>
