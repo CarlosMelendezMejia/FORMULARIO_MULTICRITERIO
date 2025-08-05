@@ -673,6 +673,8 @@ def guardar_ponderacion():
     for key, value in request.form.items():
         if not key.startswith("ponderacion_"):
             continue
+        if key == "ponderacion_global":
+            continue
         valor = value.strip()
         if valor == "":
             continue
