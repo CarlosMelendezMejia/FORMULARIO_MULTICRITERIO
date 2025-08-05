@@ -129,7 +129,9 @@ def mostrar_formulario(id_usuario):
         FROM asignacion a
         JOIN formulario f ON a.id_formulario = f.id
         LEFT JOIN respuesta r
-            ON r.id_usuario = a.id_usuario AND r.id_formulario = a.id_formulario
+            ON r.id_usuario = a.id_usuario
+           AND r.id_formulario = a.id_formulario
+           AND r.bloqueado = 0
         WHERE a.id_usuario = %s
         ORDER BY r.id IS NOT NULL, a.id_formulario
         LIMIT 1
@@ -157,7 +159,9 @@ def mostrar_formulario(id_usuario):
         SELECT rd.id_factor, rd.valor_usuario
         FROM respuesta r
         JOIN respuesta_detalle rd ON r.id = rd.id_respuesta
-        WHERE r.id_usuario = %s AND r.id_formulario = %s
+        WHERE r.id_usuario = %s
+          AND r.id_formulario = %s
+          AND r.bloqueado = 0
     """,
         (id_usuario, id_formulario),
     )
@@ -242,7 +246,9 @@ def guardar_respuesta():
         g.cursor.execute(
             """
             SELECT id FROM respuesta
-            WHERE id_usuario = %s AND id_formulario = %s
+            WHERE id_usuario = %s
+              AND id_formulario = %s
+              AND bloqueado = 0
         """,
             (id_usuario, id_formulario),
         )
@@ -262,10 +268,10 @@ def guardar_respuesta():
         # Insertar nueva respuesta
         g.cursor.execute(
             """
-            INSERT INTO respuesta (id_usuario, id_formulario)
-            VALUES (%s, %s)
+            INSERT INTO respuesta (id_usuario, id_formulario, bloqueado)
+            VALUES (%s, %s, %s)
         """,
-            (id_usuario, id_formulario),
+            (id_usuario, id_formulario, 0),
         )
         id_respuesta = g.cursor.lastrowid
 
@@ -336,6 +342,7 @@ def panel_admin():
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id
+        WHERE r.bloqueado = 0
         ORDER BY r.fecha_respuesta DESC
         LIMIT %s OFFSET %s
         """,
@@ -383,7 +390,9 @@ def administrar_formularios():
         """
         SELECT f.id, f.nombre, COUNT(r.id) AS respuestas
         FROM formulario f
-        LEFT JOIN respuesta r ON r.id_formulario = f.id
+        LEFT JOIN respuesta r
+          ON r.id_formulario = f.id
+         AND r.bloqueado = 0
         GROUP BY f.id, f.nombre
         ORDER BY f.id
         """
@@ -405,7 +414,7 @@ def eliminar_formulario(id):
     get_db()
 
     g.cursor.execute(
-        "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s",
+        "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s AND bloqueado = 0",
         (id,),
     )
     total_respuestas = g.cursor.fetchone()["total"]
@@ -427,7 +436,7 @@ def eliminar_formulario(id):
             expected = None
         if expected is not None:
             g.cursor.execute(
-                "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s",
+                "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s AND bloqueado = 0",
                 (id,),
             )
             total_actual = g.cursor.fetchone()["total"]
@@ -526,7 +535,7 @@ def detalle_respuesta(id_respuesta):
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id
-        WHERE r.id = %s
+        WHERE r.id = %s AND r.bloqueado = 0
     """,
         (id_respuesta,),
     )
@@ -640,7 +649,7 @@ def vista_ranking():
     g.cursor.execute("SELECT COUNT(*) AS total FROM asignacion")
     total_asignados = g.cursor.fetchone()["total"]
 
-    g.cursor.execute("SELECT COUNT(*) AS total FROM respuesta")
+    g.cursor.execute("SELECT COUNT(*) AS total FROM respuesta WHERE bloqueado = 0")
     total_respuestas = g.cursor.fetchone()["total"]
 
     pendientes = total_respuestas < total_asignados
@@ -658,6 +667,7 @@ def vista_ranking():
             SELECT r.id AS id_respuesta
             FROM respuesta r
             LEFT JOIN ponderacion_admin p ON r.id = p.id_respuesta
+            WHERE r.bloqueado = 0
             GROUP BY r.id
             HAVING COUNT(p.id_factor) < %s
         """
@@ -676,6 +686,7 @@ def vista_ranking():
                 GROUP BY id_respuesta
                 HAVING COUNT(id_factor) = %s
             ) rc ON pa.id_respuesta = rc.id_respuesta
+            JOIN respuesta r ON r.id = rc.id_respuesta AND r.bloqueado = 0
             JOIN respuesta_detalle rd
                 ON rd.id_respuesta = pa.id_respuesta AND rd.id_factor = f.id
             GROUP BY f.id, f.nombre
