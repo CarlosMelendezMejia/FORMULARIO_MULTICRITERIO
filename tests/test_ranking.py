@@ -66,7 +66,11 @@ def test_vista_ranking_parametrized(monkeypatch):
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
     # mock factores count to ensure dynamic parameter is used
     expected_count = 7
-    monkeypatch.setattr(app_module, "get_factores", lambda: [object()] * expected_count)
+    monkeypatch.setattr(
+        app_module,
+        "get_factores",
+        lambda: [{"id": i + 1} for i in range(expected_count)],
+    )
 
     # reset cache
     cache.delete(RANKING_CACHE_KEY)
@@ -103,7 +107,11 @@ def test_vista_ranking_incompletas(monkeypatch):
     conn = DummyConnection(cursor)
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
-    monkeypatch.setattr(app_module, "get_factores", lambda: [object()] * 5)
+    monkeypatch.setattr(
+        app_module,
+        "get_factores",
+        lambda: [{"id": i + 1} for i in range(5)],
+    )
 
     cache.delete(RANKING_CACHE_KEY)
 
@@ -130,7 +138,11 @@ def test_ranking_cache_invalidation_after_ponderacion(monkeypatch):
     conn = DummyConnection(cursor)
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
-    monkeypatch.setattr(app_module, "get_factores", lambda: [object()] * 4)
+    monkeypatch.setattr(
+        app_module,
+        "get_factores",
+        lambda: [{"id": i + 1} for i in range(4)],
+    )
 
     cache.delete(RANKING_CACHE_KEY)
 
@@ -166,7 +178,7 @@ def test_vista_ranking_incluye_color(monkeypatch):
     conn = DummyConnection(cursor)
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
-    monkeypatch.setattr(app_module, "get_factores", lambda: [object()])
+    monkeypatch.setattr(app_module, "get_factores", lambda: [{"id": 1}])
 
     cache.delete(RANKING_CACHE_KEY)
 

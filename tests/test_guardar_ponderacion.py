@@ -82,7 +82,8 @@ def create_dummy(monkeypatch, fetchone_results=None, fetchall_results=None):
 
 
 def test_guardar_ponderacion_ignora_global(monkeypatch):
-    factors = [
+    all_factors = [{'id': 1}, {'id': 2}]
+    detalle_factors = [
         {
             'id_factor': 2,
             'nombre': 'F2',
@@ -95,7 +96,7 @@ def test_guardar_ponderacion_ignora_global(monkeypatch):
     cursor, conn = create_dummy(
         monkeypatch,
         fetchone_results=fetchone,
-        fetchall_results=[factors, []],
+        fetchall_results=[all_factors, detalle_factors, []],
     )
 
     with app.test_client() as client:
@@ -108,7 +109,12 @@ def test_guardar_ponderacion_ignora_global(monkeypatch):
         }
         resp = client.post('/admin/ponderar', data=data)
         assert resp.status_code == 302
-        assert cursor.queries[0][1] == [(1, 2, 8.0)]
+        # First query selects factors, second deletes previous rows
+        delete_q, delete_params = cursor.queries[1]
+        assert 'DELETE FROM ponderacion_admin WHERE id_respuesta = %s' in delete_q
+        assert delete_params == (1,)
+        insert_q, insert_params = cursor.queries[2]
+        assert insert_params == [(1, 1, 0.0), (1, 2, 8.0)]
         assert conn.commit_called == 1
 
         resp2 = client.get('/admin/respuesta/1')

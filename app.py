@@ -669,40 +669,36 @@ def guardar_ponderacion():
 
     get_db()
 
+    factores = get_factores()
     ponderaciones = []
 
-    for key, value in request.form.items():
-        if not key.startswith("ponderacion_"):
-            continue
-        if key == "ponderacion_global":
-            continue
-        valor = value.strip()
-        if valor == "":
-            continue
-        try:
-            peso = Decimal(valor)
-        except InvalidOperation:
-            flash("Las ponderaciones deben ser valores numéricos.")
-            return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
+    for factor in factores:
+        id_factor = factor["id"]
+        valor = request.form.get(f"ponderacion_{id_factor}", "").strip()
+        if valor:
+            try:
+                peso = Decimal(valor)
+            except InvalidOperation:
+                flash("Las ponderaciones deben ser valores numéricos.")
+                return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
 
-        if peso < 0 or peso > 10:
-            flash("Cada ponderación debe estar entre 0 y 10.")
-            return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
+            if peso < 0 or peso > 10:
+                flash("Cada ponderación debe estar entre 0 y 10.")
+                return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
 
-        peso = peso.quantize(Decimal("0.1"))
-        try:
-            id_factor = int(key.split("_")[1])
-        except ValueError:
-            flash("El identificador del factor debe ser un número entero.")
-            return redirect(url_for("detalle_respuesta", id_respuesta=id_respuesta))
-        ponderaciones.append((id_respuesta, id_factor, float(peso)))
+            peso = float(peso.quantize(Decimal("0.1")))
+        else:
+            peso = 0.0
+        ponderaciones.append((id_respuesta, id_factor, peso))
 
+    g.cursor.execute(
+        "DELETE FROM ponderacion_admin WHERE id_respuesta = %s", (id_respuesta,)
+    )
     if ponderaciones:
         g.cursor.executemany(
             """
                 INSERT INTO ponderacion_admin (id_respuesta, id_factor, peso_admin)
                 VALUES (%s, %s, %s)
-                ON DUPLICATE KEY UPDATE peso_admin = VALUES(peso_admin)
             """,
             ponderaciones,
         )
