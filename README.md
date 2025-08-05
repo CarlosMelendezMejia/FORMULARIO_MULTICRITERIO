@@ -10,6 +10,7 @@ Configura las siguientes variables de entorno antes de ejecutar la aplicación:
 - `DB_USER`: usuario de la base de datos.
 - `DB_PASSWORD`: contraseña del usuario.
 - `DB_NAME`: nombre de la base de datos.
+- `BLOQUEO_CACHE_TTL`: (opcional) segundos que permanece en caché el estado de bloqueo de un formulario. Valor por defecto: 30.
 
 Ejemplo en Linux/Mac:
 
@@ -71,4 +72,12 @@ Si deseas mantener un rango acotado, reemplaza la última línea por:
 ```
 
 Sustituye `<numero_maximo_de_factores>` por la cantidad máxima de factores que esperas manejar.
+
+## Caché de bloqueos
+
+El estado de bloqueo de cada formulario se almacena en memoria durante un
+tiempo determinado por `BLOQUEO_CACHE_TTL`. Cualquier acción administrativa
+que altere el campo `bloqueado` debe llamar a `invalidate_bloqueo_cache` con
+el identificador del usuario y del formulario para eliminar la entrada
+correspondiente y evitar inconsistencias visibles.
 

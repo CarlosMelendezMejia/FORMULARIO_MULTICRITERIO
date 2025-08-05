@@ -59,6 +59,8 @@ def test_reiniciar_formularios_requires_admin(monkeypatch):
 def test_reiniciar_formularios(monkeypatch):
     cursor, conn = create_dummy(monkeypatch)
     cache.set(RANKING_CACHE_KEY, {"ranking": "x", "incompletas": "y"})
+    BLOQUEO_CACHE.clear()
+    BLOQUEO_CACHE[(5, 9)] = {"bloqueado": True, "timestamp": time.time()}
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -74,6 +76,7 @@ def test_reiniciar_formularios(monkeypatch):
     ]
     assert conn.commit_called
     assert cache.get(RANKING_CACHE_KEY) is None
+    assert BLOQUEO_CACHE == {}
 
 
 def test_eliminar_formulario_invalida_cache(monkeypatch):
@@ -81,6 +84,8 @@ def test_eliminar_formulario_invalida_cache(monkeypatch):
     cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
 
     cache.set(RANKING_CACHE_KEY, {"ranking": "cached", "incompletas": "cached"})
+    BLOQUEO_CACHE.clear()
+    BLOQUEO_CACHE[(2, 1)] = {"bloqueado": True, "timestamp": time.time()}
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -100,6 +105,7 @@ def test_eliminar_formulario_invalida_cache(monkeypatch):
     ]
     assert conn.commit_called
     assert cache.get(RANKING_CACHE_KEY) is None
+    assert (2, 1) not in BLOQUEO_CACHE
 
 
 def test_abrir_formulario_requires_admin(monkeypatch):
