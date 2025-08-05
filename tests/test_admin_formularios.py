@@ -116,7 +116,7 @@ def test_eliminar_formulario_invalida_cache(monkeypatch):
 
     assert cursor.queries == [
         (
-            "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s AND bloqueado = 0",
+            "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s AND bloqueado = 1",
             (1,),
         ),
         ("DELETE FROM respuesta WHERE id_formulario = %s", (1,)),

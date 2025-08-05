@@ -436,7 +436,7 @@ def administrar_formularios():
         FROM formulario f
         LEFT JOIN respuesta r
           ON r.id_formulario = f.id
-         AND r.bloqueado = 0
+         AND r.bloqueado = 1
         GROUP BY f.id, f.nombre
         ORDER BY f.id
         """
@@ -458,7 +458,7 @@ def eliminar_formulario(id):
     get_db()
 
     g.cursor.execute(
-        "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s AND bloqueado = 0",
+        "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s AND bloqueado = 1",
         (id,),
     )
     total_respuestas = g.cursor.fetchone()["total"]
@@ -480,7 +480,7 @@ def eliminar_formulario(id):
             expected = None
         if expected is not None:
             g.cursor.execute(
-                "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s AND bloqueado = 0",
+                "SELECT COUNT(*) AS total FROM respuesta WHERE id_formulario = %s AND bloqueado = 1",
                 (id,),
             )
             total_actual = g.cursor.fetchone()["total"]
@@ -723,10 +723,14 @@ def vista_ranking():
     g.cursor.execute("SELECT COUNT(*) AS total FROM asignacion")
     total_asignados = g.cursor.fetchone()["total"]
 
-    g.cursor.execute("SELECT COUNT(*) AS total FROM respuesta WHERE bloqueado = 0")
+    g.cursor.execute("SELECT COUNT(*) AS total FROM respuesta WHERE bloqueado = 1")
     total_respuestas = g.cursor.fetchone()["total"]
 
+    g.cursor.execute("SELECT COUNT(*) AS total FROM respuesta WHERE bloqueado = 0")
+    total_desbloqueados = g.cursor.fetchone()["total"]
+
     pendientes = total_respuestas < total_asignados
+    hay_desbloqueados = total_desbloqueados > 0
 
     cached = cache.get(RANKING_CACHE_KEY)
     if cached is not None:
@@ -741,7 +745,7 @@ def vista_ranking():
             SELECT r.id AS id_respuesta
             FROM respuesta r
             LEFT JOIN ponderacion_admin p ON r.id = p.id_respuesta
-            WHERE r.bloqueado = 0
+            WHERE r.bloqueado = 1
             GROUP BY r.id
             HAVING COUNT(p.id_factor) < %s
         """
@@ -761,7 +765,7 @@ def vista_ranking():
                 GROUP BY id_respuesta
                 HAVING COUNT(id_factor) = %s
             ) rc ON pa.id_respuesta = rc.id_respuesta
-            JOIN respuesta r ON r.id = rc.id_respuesta AND r.bloqueado = 0
+            JOIN respuesta r ON r.id = rc.id_respuesta AND r.bloqueado = 1
             JOIN respuesta_detalle rd
                 ON rd.id_respuesta = pa.id_respuesta AND rd.id_factor = f.id
             GROUP BY f.id, f.nombre, f.color
@@ -789,6 +793,7 @@ def vista_ranking():
         total_respuestas=total_respuestas,
         incompletas=incompletas,
         estado_ranking=estado_ranking,
+        hay_desbloqueados=hay_desbloqueados,
     )
 
 

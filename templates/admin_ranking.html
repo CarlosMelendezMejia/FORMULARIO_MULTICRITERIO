@@ -37,6 +37,12 @@
       </div>
       {% endif %}
 
+      {% if hay_desbloqueados %}
+      <div class="alert alert-warning" role="alert">
+        Existen formularios sin bloquear; el ranking es provisional.
+      </div>
+      {% endif %}
+
       {% if incompletas %}
       <div class="alert alert-warning" role="alert">
         Existen respuestas con ponderaciones incompletas (ID: {{ incompletas|join(', ') }}). Estas respuestas fueron excluidas del ranking.
