@@ -17,13 +17,6 @@
   border-radius: 0.25rem;
 }
 
-.color-label {
-  display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.25rem;
-  color: #fff;
-  font-size: 0.875rem;
-}
 
 body {
   background: url('../img/background.png') no-repeat center center fixed;
@@ -663,6 +656,18 @@ input[type="number"].ponderacion:focus {
 .factor-name {
   color: var(--color-primario-medio);
   font-weight: 500;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.factor-name::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0.5rem;
+  background-color: var(--color, #cccccc);
 }
 
 .factor-desc {
