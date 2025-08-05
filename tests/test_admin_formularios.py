@@ -47,6 +47,26 @@ def create_dummy(monkeypatch, fetchone_results=None):
     return cursor, conn
 
 
+def test_crear_formulario_nombre_por_defecto(monkeypatch):
+    fetchone_results = [{"siguiente_id": None}]
+    cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess["is_admin"] = True
+        resp = client.post("/admin/formularios", data={"nombre": ""})
+        assert resp.status_code == 302
+        assert resp.headers["Location"].endswith("/admin/formularios")
+
+    assert len(cursor.queries) == 2
+    assert "AUTO_INCREMENT AS siguiente_id" in cursor.queries[0][0]
+    assert cursor.queries[1] == (
+        "INSERT INTO formulario (nombre) VALUES (%s)",
+        ("Formulario 01",),
+    )
+    assert conn.commit_called
+
+
 def test_reiniciar_formularios_requires_admin(monkeypatch):
     cursor, conn = create_dummy(monkeypatch)
     with app.test_client() as client:
