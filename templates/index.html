@@ -65,24 +65,51 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ol class="list-group list-group-numbered">
-                        <li class="list-group-item my-4">
-                            Ingresa tu ID de usuario y presiona <strong>Ingresar al Formulario</strong>.
-                            <div class="text-center my-3"><!-- Imagen del paso 1 --></div>
+                    <p class="mb-3">
+                        Este sistema permite priorizar factores mediante la asignación de valores únicos. Cada usuario
+                        recibe un formulario (posiblemente protegido con contraseña) y asigna una jerarquía
+                        de importancia a los factores disponibles. El administrador posteriormente pondera y genera un
+                        ranking global.
+                    </p>
+                    <h6 class="mt-4">Pasos para Usuarios</h6>
+                    <ol class="list-group list-group-numbered mb-4">
+                        <li class="list-group-item my-2">
+                            Ingresa tu <strong>ID de Usuario</strong> y haz clic en <em>Ingresar al Formulario</em>.
+                            Si el formulario está protegido aparecerá una pantalla para introducir la contraseña; ésta se pedirá cada vez que abras el formulario.
                         </li>
-                        <li class="list-group-item my-4">
-                            Verifica tus datos y asigna valores únicos del 10 al 1 a cada factor.
-                            <div class="text-center my-3"><!-- Imagen del paso 2 --></div>
+                        <li class="list-group-item my-2">
+                            Verifica tus datos personales mostrados (Nombre, Apellidos, Cargo, Dependencia). Si falta algo complétalo.
                         </li>
-                        <li class="list-group-item my-4">
-                            Presiona <strong>Guardar Respuestas</strong> y confirma la acción en el modal.
-                            <div class="text-center my-3"><!-- Imagen del paso 3 --></div>
+                        <li class="list-group-item my-2">
+                            Asigna a cada factor un número único (sin repetir) dentro del rango permitido. El valor representa su prioridad relativa.
                         </li>
-                        <li class="list-group-item my-4">
-                            Revisa la página de confirmación y regresa al inicio si es necesario.
-                            <div class="text-center my-3"><!-- Imagen del paso 4 --></div>
+                        <li class="list-group-item my-2">
+                            Revisa la tabla de simbología para entender la dimensión de cada factor.
+                        </li>
+                        <li class="list-group-item my-2">
+                            Haz clic en <strong>Guardar Respuestas</strong>. Confirma en el cuadro de diálogo. El sistema bloqueará tu respuesta (ya no podrás editarla a menos que un administrador la reabra).
+                        </li>
+                        <li class="list-group-item my-2">
+                            Observa la pantalla de confirmación y, si lo deseas, regresa al inicio.
                         </li>
                     </ol>
+                    <h6 class="mt-3">Pasos para Administradores</h6>
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item">Inicia sesión con la contraseña de administrador.</li>
+                        <li class="list-group-item">En el panel principal filtra, pagina y exporta respuestas a CSV.</li>
+                        <li class="list-group-item">Gestiona formularios: creación, activación/desactivación de contraseña y eliminación (con confirmación segura).</li>
+                        <li class="list-group-item">Edita factores (nombre, descripción, color y dimensión) y agrega nuevos.</li>
+                        <li class="list-group-item">Asigna ponderaciones a cada respuesta; el ranking se recalcula (usa caché temporal).</li>
+                        <li class="list-group-item">Reabre respuestas para permitir que un usuario vuelva a modificar su priorización.</li>
+                        <li class="list-group-item">Exporta el ranking consolidado a CSV cuando las ponderaciones estén completas.</li>
+                    </ul>
+                    <h6 class="mt-3">Notas</h6>
+                    <ul class="small">
+                        <li>Las contraseñas de formularios se almacenan como variables de entorno; cambiar una se refleja inmediatamente.</li>
+                        <li>Si se reabre una respuesta deja de estar bloqueada y aparece como pendiente hasta completarse de nuevo.</li>
+                        <li>El ranking sólo incluye respuestas completamente ponderadas y bloqueadas.</li>
+                        <li>Si la aplicación se sirve bajo un subpath, las URLs se ajustan automáticamente.</li>
+                    </ul>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
