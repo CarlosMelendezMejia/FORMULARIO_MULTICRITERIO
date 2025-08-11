@@ -101,7 +101,7 @@
                             {% for factor in factores %}
                             <tr>
                                 <td>
-                                    <span class="color-label" style="background-color: {{ factor.color or '#cccccc' }};">{{ factor.nombre }}</span>
+                                    <span class="color-label factor-item" data-factor-id="{{ factor.id }}" style="background-color: {{ factor.color or '#cccccc' }};">{{ factor.nombre }}</span>
                                     <span class="badge bg-secondary ms-1 dimension-badge" title="Dimensión">D{{ factor.dimension }}</span>
                                     <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
                                 </td>
@@ -182,6 +182,7 @@
         });
     </script>
     <script src="{{ url_for('static', filename='js/dimensiones.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/factores.js') }}"></script>
 </body>
 
 </html>
