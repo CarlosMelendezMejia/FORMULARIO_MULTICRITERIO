@@ -1,0 +1,9 @@
+Flask
+mysql-connector-python
+python-dotenv
+bleach
+Flask-Caching
+redis
+pytest
+gunicorn
+concurrent-log-handler

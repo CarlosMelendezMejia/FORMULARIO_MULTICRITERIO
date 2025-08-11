@@ -1,0 +1,19 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light admin-navbar mb-4">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav" aria-controls="adminNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="adminNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 admin-nav-links">
+        <li class="nav-item"><a class="nav-link {% if request.endpoint=='panel_admin' %}active{% endif %}" href="{{ url_for('panel_admin') }}"><i class="bi bi-speedometer2 me-1"></i>Panel</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint=='administrar_formularios' %}active{% endif %}" href="{{ url_for('administrar_formularios') }}"><i class="bi bi-ui-checks-grid me-1"></i>Formularios</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint=='administrar_factores' %}active{% endif %}" href="{{ url_for('administrar_factores') }}"><i class="bi bi-pencil-square me-1"></i>Factores</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint=='vista_ranking' %}active{% endif %}" href="{{ url_for('vista_ranking') }}"><i class="bi bi-bar-chart-line me-1"></i>Ranking</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-secondary d-none d-md-inline">Admin</span>
+        <a class="btn btn-outline-danger btn-sm" href="{{ url_for('admin_logout') }}"><i class="bi bi-box-arrow-right me-1"></i>Salir</a>
+      </div>
+    </div>
+  </div>
+</nav>

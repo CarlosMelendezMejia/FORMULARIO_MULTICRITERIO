@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ranking de Factores</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+  <!-- Chart.js y librerías de captura -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+  <div class="container py-5">
+  {% include '_admin_nav.html' %}
+    <div id="rankingContent">
+      <h3>Ranking Global de Factores</h3>
+      <div class="row g-3 mb-3 kpi-cards">
+        <div class="col-6 col-md-3">
+          <div class="kpi-card">
+            <div class="kpi-label">Asignados</div>
+            <div class="kpi-value">{{ total_asignados }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card">
+            <div class="kpi-label">Respuestas</div>
+            <div class="kpi-value">{{ total_respuestas }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card">
+            <div class="kpi-label">Completas</div>
+            <div class="kpi-value">{{ completas_count }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card">
+            <div class="kpi-label">% Completas</div>
+            <div class="kpi-value">{{ '%.1f'|format(completas_pct) }}%</div>
+          </div>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label small text-muted mb-1">Progreso de completitud de ponderaciones</label>
+        <div class="progress" style="height: 18px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ completas_pct }}%;" aria-valuenow="{{ completas_pct|round(1) }}" aria-valuemin="0" aria-valuemax="100">{{ completas_pct|round(1) }}%</div>
+        </div>
+      </div>
+
+      {% if pendientes %}
+      <div class="alert alert-warning" role="alert">
+        Faltan formularios por contestar; el ranking es parcial.
+      </div>
+      {% endif %}
+
+      {% if hay_desbloqueados %}
+      <div class="alert alert-warning" role="alert">
+        Existen formularios sin bloquear; el ranking es provisional.
+      </div>
+      {% endif %}
+
+      {% if incompletas %}
+      <div class="alert alert-warning" role="alert">
+        Existen respuestas con ponderaciones incompletas (ID: {{ incompletas|join(', ') }}). Estas respuestas fueron excluidas del ranking.
+      </div>
+      {% endif %}
+
+      {% if estado_ranking %}
+      <div class="alert alert-info" role="alert">No hay ponderaciones registradas</div>
+      <div class="text-center mt-4">
+        <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Volver al Panel
+        </a>
+      </div>
+      {% else %}
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <a href="{{ url_for('export_ranking_csv') }}" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV Ranking</a>
+        <button id="downloadPNG" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf me-1"></i>PDF Imagen</button>
+        <a href="{{ url_for('panel_admin') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+        <div class="ms-auto small text-muted">Generado: {{ generated_at.strftime('%Y-%m-%d %H:%M UTC') }}</div>
+      </div>
+      <div class="table-responsive ranking-table-wrapper">
+        <table class="table table-bordered table-hover align-middle ranking-table">
+          <thead>
+            <tr>
+              <th>Puesto</th>
+              <th>Factor</th>
+              <th>Total Ponderado</th>
+              <th>% respecto máx</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in ranking %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td><span class="color-badge me-1" style="background-color: {{ r.color or '#cccccc' }};"></span>{{ r.nombre }}</td>
+              <td>
+                {{ '%.2f' | format(r.total or 0) }}
+                {% if (r.total or 0) == 0 %}
+                <div class="text-danger">Faltan ponderaciones</div>
+                {% endif %}
+              </td>
+              <td>
+                {% set pct = ( (r.total or 0) / max_total * 100 ) if max_total else 0 %}
+                <div class="progress ranking-progress" style="height:14px;">
+                  <div class="progress-bar" role="progressbar" style="width: {{ '%.1f'|format(pct) }}%; background-color: {{ r.color or '#0d6efd' }};" aria-valuenow="{{ '%.1f'|format(pct) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="small text-muted mt-1">{{ '%.1f'|format(pct) }}%</div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="small text-muted">Los factores con total 0 indican que faltan ponderaciones. El porcentaje se calcula sobre el total máximo observado ({{ '%.2f'|format(max_total) }}).</div>
+      </div>
+      <canvas id="rankingChart" class="mt-4"></canvas>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not estado_ranking %}
+  <script>
+    // Renderizar gráfico con datos desde Jinja
+    const factorLabels = {{ ranking | map(attribute='nombre') | list | tojson | safe }};
+    const factorTotals = {{ ranking | map(attribute='total') | list | tojson | safe }};
+    const factorColors = {{ ranking | map(attribute='color') | map('default', '#cccccc') | list | tojson | safe }};
+
+    const ctx = document.getElementById('rankingChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: factorLabels,
+        datasets: [{
+          label: 'Total Ponderado',
+          data: factorTotals,
+          backgroundColor: factorColors,
+          borderColor: factorColors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Descargar como imagen dentro de PDF
+  document.getElementById('downloadPNG').addEventListener('click', () => {
+      const element = document.getElementById('rankingContent');
+      html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const imgProps = { width: canvas.width, height: canvas.height };
+        const ratio = imgProps.width / imgProps.height;
+        let imgWidth = pageWidth;
+        let imgHeight = pageWidth / ratio;
+
+        if (imgHeight > pageHeight) {
+          imgHeight = pageHeight;
+          imgWidth = pageHeight * ratio;
+        }
+
+        const x = (pageWidth - imgWidth) / 2;
+        const y = (pageHeight - imgHeight) / 2;
+
+        pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+        pdf.save('ranking_factores.pdf');
+      });
+    });
+  </script>
+  {% endif %}
+</body>
+</html>

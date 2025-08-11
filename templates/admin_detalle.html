@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Asignar Ponderación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+    <div class="container py-5">
+    {% include '_admin_nav.html' %}
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <div class="ponderacion-container">
+            <h3>Asignar Ponderación – Respuesta #{{ respuesta.id_respuesta }}</h3>
+
+            <div class="user-info row g-2 mb-4">
+                <div class="col-md-3 col-6"><strong>Usuario:</strong><br>{{ respuesta.nombre }} {{ respuesta.apellidos }}</div>
+                <div class="col-md-3 col-6"><strong>Cargo:</strong><br>{{ respuesta.cargo }}</div>
+                <div class="col-md-3 col-6"><strong>Dependencia:</strong><br>{{ respuesta.dependencia }}</div>
+                <div class="col-md-3 col-6"><strong>Formulario:</strong><br>{{ respuesta.formulario }}</div>
+            </div>
+
+            <form method="post" action="{{ url_for('guardar_ponderacion') }}">
+                <input type="hidden" name="id_respuesta" value="{{ respuesta.id_respuesta }}">
+
+                <div class="mb-4">
+                    <label for="ponderacion_global" class="form-label">Ponderación Global</label>
+                    <div class="input-group">
+                        <input type="number" step="0.1" min="0" max="10" id="ponderacion_global" class="form-control"
+                            placeholder="0.0 - 10.0">
+                        <button type="button" id="aplicar_a_todos" class="btn btn-acento">
+                            <i class="bi bi-arrow-repeat me-2"></i>Aplicar a todos
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th class="th-factor">Factor</th>
+                                <th>Dim</th>
+                                <th class="th-definicion-detalle">Definición</th>
+                                <th class="th-valor-usuario">Valor Usuario</th>
+                                <th class="th-ponderacion-admin">Ponderación Admin</th>
+                                <th class="th-valor-ponderado">Valor Ponderado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in factores %}
+                            <tr>
+                                <td class="factor-name">
+                                    <span class="color-label" style="background-color: {{ f.color or '#cccccc' }};">{{ f.nombre }}</span>
+                                </td>
+                                <td class="text-center"><span class="badge bg-secondary">{{ f.dimension }}</span></td>
+                                <td class="factor-desc text-start">{{ f.descripcion }}</td>
+                                <td>{{ f.valor_usuario }}</td>
+                                <td>
+                                    <input type="number" step="0.1" min="0" max="10"
+                                        name="ponderacion_{{ f.id_factor }}" value="{{ f.peso_admin }}"
+                                        class="form-control ponderacion" data-valor-usuario="{{ f.valor_usuario }}">
+                                </td>
+                                <td class="valor-ponderado text-center">—</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="actions-container">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save-fill me-2"></i>Guardar Ponderaciones
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('.ponderacion');
+            const ponderacionGlobal = document.getElementById('ponderacion_global');
+            const aplicarBtn = document.getElementById('aplicar_a_todos');
+
+            function actualizarPonderados() {
+                inputs.forEach(input => {
+                    const fila = input.closest('tr');
+                    const valUsuario = parseFloat(input.dataset.valorUsuario);
+                    const valAdmin = parseFloat(input.value);
+                    const celda = fila.querySelector('.valor-ponderado');
+
+                    celda.classList.remove('texto-ponderado', 'texto-gris');
+
+                    if (!isNaN(valUsuario) && !isNaN(valAdmin)) {
+                        const resultado = (valUsuario * valAdmin).toFixed(2);
+                        celda.textContent = resultado;
+                        celda.classList.add(valAdmin > 0 ? 'texto-ponderado' : 'texto-gris');
+                    } else {
+                        celda.textContent = '—';
+                        celda.classList.add('texto-gris');
+                    }
+                });
+            }
+
+            inputs.forEach(input => {
+                input.addEventListener('input', actualizarPonderados);
+                input.addEventListener('change', actualizarPonderados);
+            });
+
+            if (aplicarBtn && ponderacionGlobal) {
+                aplicarBtn.addEventListener('click', () => {
+                    const valor = ponderacionGlobal.value;
+                    inputs.forEach(input => {
+                        input.value = valor;
+                    });
+                    actualizarPonderados();
+                });
+            }
+
+            actualizarPonderados();
+        });
+    </script>
+</body>
+
+</html>

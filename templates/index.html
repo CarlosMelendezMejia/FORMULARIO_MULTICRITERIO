@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inicio | Sistema de Evaluación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        .login-card {
+            background-color: white;
+            /* Fondo blanco */
+            border-radius: 10px;
+            /* Bordes redondeados para mejor apariencia */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Sombra para mejor contraste */
+        }
+
+        .card-header {
+            background-color: #343a40;
+            /* Manteniendo el color oscuro del header */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container py-5">
+        <div class="login-card mx-auto">
+            <div class="card-header">
+                <h3 class="mb-0 text-white">Sistema de Evaluación</h3>
+                <!-- Icono de información -->
+                <i class="bi bi-info-circle info-icon" data-bs-toggle="modal" data-bs-target="#instruccionesModal"></i>
+            </div>
+
+            <div class="card-body">
+                <form action="{{ url_for('formulario_redirect') }}" method="post">
+                    <div class="mb-3">
+                        <label for="usuario_id" class="form-label">ID de Usuario</label>
+                        <input type="number" class="form-control" name="usuario_id" id="usuario_id" required>
+                        <div class="form-text">Ingresa tu ID de usuario para acceder al formulario asignado.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Ingresar al Formulario</button>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <a href="{{ url_for('admin_login') }}" class="btn btn-outline-dark w-100">Ingresar como
+                        Administrador</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Instrucciones -->
+    <div class="modal fade" id="instruccionesModal" tabindex="-1" aria-labelledby="instruccionesModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="instruccionesModalLabel">Instrucciones del Sistema</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ol class="list-group list-group-numbered">
+                        <li class="list-group-item my-4">
+                            Ingresa tu ID de usuario y presiona <strong>Ingresar al Formulario</strong>.
+                            <div class="text-center my-3"><!-- Imagen del paso 1 --></div>
+                        </li>
+                        <li class="list-group-item my-4">
+                            Verifica tus datos y asigna valores únicos del 10 al 1 a cada factor.
+                            <div class="text-center my-3"><!-- Imagen del paso 2 --></div>
+                        </li>
+                        <li class="list-group-item my-4">
+                            Presiona <strong>Guardar Respuestas</strong> y confirma la acción en el modal.
+                            <div class="text-center my-3"><!-- Imagen del paso 3 --></div>
+                        </li>
+                        <li class="list-group-item my-4">
+                            Revisa la página de confirmación y regresa al inicio si es necesario.
+                            <div class="text-center my-3"><!-- Imagen del paso 4 --></div>
+                        </li>
+                    </ol>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="login-logos">
+        <img src="{{ url_for('static', filename='img/logo_unam.png') }}" alt="Logo UNAM">
+        <img src="{{ url_for('static', filename='img/logo_fes.png') }}" alt="Logo FES">
+        <img src="{{ url_for('static', filename='img/logo_planeacion.png') }}" alt="Logo Planeación">
+        <img src="{{ url_for('static', filename='img/Logo_ceide.png') }}" alt="Logo Extra 1">
+        <img src="{{ url_for('static', filename='img/logo_cfop.png') }}" alt="Logo Extra 2">
+    </div>
+</body>
+
+</html>

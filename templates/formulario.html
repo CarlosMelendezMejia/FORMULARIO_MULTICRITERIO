@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Formulario de Evaluación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const selects = document.querySelectorAll('select.valor-factor');
+
+            function actualizarOpciones() {
+                const usados = new Set();
+                selects.forEach(select => {
+                    if (select.value) {
+                        usados.add(select.value);
+                    }
+                });
+
+                selects.forEach(select => {
+                    const valorActual = select.value;
+                    [...select.options].forEach(option => {
+                        if (option.value === "" || option.value === valorActual) {
+                            option.disabled = false;
+                        } else {
+                            option.disabled = usados.has(option.value);
+                        }
+                    });
+                });
+            }
+
+            selects.forEach(select => {
+                select.addEventListener('change', actualizarOpciones);
+            });
+
+            actualizarOpciones();
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container py-5">
+        <div class="evaluation-card">
+            <h2>Formulario de Evaluación Multicriterio</h2>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="alert alert-danger">
+                {{ messages[0] }}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form method="post" action="{{ url_for('guardar_respuesta') }}">
+                <input type="hidden" name="usuario_id" value="{{ usuario_id }}">
+                <input type="hidden" name="formulario_id" value="{{ formulario.id_formulario }}">
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" value="{{ usuario.nombre }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Apellidos</label>
+                        <input type="text" class="form-control" name="apellidos" value="{{ usuario.apellidos }}" required>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <label class="form-label">Cargo</label>
+                        <input type="text" class="form-control" name="cargo" value="{{ usuario.cargo }}" required>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <label class="form-label">Dependencia</label>
+                        <input type="text" class="form-control" name="dependencia" value="{{ usuario.dependencia }}" required>
+                    </div>
+                </div>
+
+                <div class="bg-instruccion">
+                    <strong>Instrucción:</strong> Por favor, según su percepción, ordene los siguientes factores asignando
+                    un valor del <strong>{{ num_factores }} al 1</strong>, donde <strong>{{ num_factores }} representa el factor de mayor
+                        importancia</strong> y <strong>1 el de menor relevancia</strong>.
+                    <br>Nota: Cada número debe ser único. No se pueden repetir valores.
+                </div>
+
+                <div id="tabla-dimensiones" class="mb-4">
+                    <h5 class="mb-2">Simbología de Dimensiones</h5>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th class="th-factores">Factores</th>
+                                <th class="th-definicion">Definición</th>
+                                <th class="th-ponderacion">Ponderación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factor in factores %}
+                            <tr>
+                                <td>
+                                    <span class="color-label" style="background-color: {{ factor.color or '#cccccc' }};">{{ factor.nombre }}</span>
+                                    <span class="badge bg-secondary ms-1 dimension-badge" title="Dimensión">D{{ factor.dimension }}</span>
+                                    <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
+                                </td>
+                                <td>{{ factor.descripcion }}</td>
+                                <td class="text-center">
+                                    <select name="valor_{{ loop.index }}" class="form-select valor-factor" required>
+                                        <option value="">Seleccione</option>
+                                        {% for num in range(1, num_factores + 1) %}
+                                        <option value="{{ num }}" {% if respuestas_previas[factor.id]|default('')==num %}selected{% endif %}>
+                                            {{ num }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex flex-column flex-md-row mt-4 gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill py-3">
+                        <i class="bi bi-save me-1"></i>Guardar Respuestas
+                    </button>
+                    <button type="button" id="backButton" class="btn btn-secondary flex-fill py-3">
+                        <i class="bi bi-arrow-left me-1"></i>Regresar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación al regresar -->
+    <div class="modal fade" id="exitModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">¿Desea salir?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    Seleccione una opción para continuar.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="modalGuardar">Guardar</button>
+                    <button type="button" class="btn btn-danger" id="modalDescartar">Descartar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const backButton = document.getElementById('backButton');
+            const exitModal = new bootstrap.Modal(document.getElementById('exitModal'));
+            const modalGuardar = document.getElementById('modalGuardar');
+            const modalDescartar = document.getElementById('modalDescartar');
+
+            backButton.addEventListener('click', () => {
+                exitModal.show();
+            });
+
+            modalGuardar.addEventListener('click', () => {
+                const form = document.querySelector('form');
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'exit_redirect';
+                hidden.value = 'true';
+                form.appendChild(hidden);
+                form.submit();
+            });
+
+            modalDescartar.addEventListener('click', () => {
+                window.location = '{{ url_for("index") }}';
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/dimensiones.js') }}"></script>
+</body>
+
+</html>

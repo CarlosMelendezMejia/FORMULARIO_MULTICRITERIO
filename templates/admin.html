@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Panel del Administrador</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+    <div class="container py-5">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light admin-navbar">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav"
+                    aria-controls="adminNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="adminNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 admin-nav-links">
+                        <li class="nav-item"><a
+                                class="nav-link {% if request.endpoint=='administrar_factores' %}active{% endif %}"
+                                href="{{ url_for('administrar_factores') }}"><i
+                                    class="bi bi-pencil-square me-1"></i>Editar Factores</a></li>
+                        <li class="nav-item"><a
+                                class="nav-link {% if request.endpoint=='administrar_formularios' %}active{% endif %}"
+                                href="{{ url_for('administrar_formularios') }}"><i
+                                    class="bi bi-ui-checks-grid me-1"></i>Formularios</a></li>
+                        <li class="nav-item"><a
+                                class="nav-link {% if request.endpoint=='panel_admin' %}active{% endif %}"
+                                href="{{ url_for('panel_admin') }}"><i class="bi bi-speedometer2 me-1"></i>Panel</a>
+                        </li>
+                        <li class="nav-item"><a
+                                class="nav-link {% if request.endpoint=='vista_ranking' %}active{% endif %}"
+                                href="{{ url_for('vista_ranking') }}"><i
+                                    class="bi bi-bar-chart-line me-1"></i>Ranking</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_logout') }}"><i
+                                    class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="admin-container">
+            <h2>Panel del Administrador</h2>
+            <div class="d-flex flex-wrap align-items-center mb-3 gap-3">
+                <div class="badge bg-success text-wrap p-2">Bloqueados: {{ count_bloqueados }}</div>
+                <div class="badge bg-warning text-dark text-wrap p-2">Abiertos: {{ count_abiertos }}</div>
+                <div class="badge bg-secondary text-wrap p-2">Total filtrado: {{ total_count }}</div>
+                <div class="ms-auto d-flex gap-2">
+                    <a class="btn btn-outline-success btn-sm"
+                        href="{{ url_for('export_respuestas_csv', estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">
+                        <i class="bi bi-download me-1"></i>CSV
+                    </a>
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel_admin', clear=1) }}">
+                        <i class="bi bi-x-circle me-1"></i>Reset Filtros
+                    </a>
+                </div>
+            </div>
+
+            <form method="get" class="row g-2 mb-4 align-items-end">
+                <input type="hidden" name="page" value="1">
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">Estado</label>
+                    <select name="estado" class="form-select form-select-sm">
+                        <option value="" {% if not estado %}selected{% endif %}>Todos</option>
+                        <option value="bloqueado" {% if estado=='bloqueado' %}selected{% endif %}>Bloqueado</option>
+                        <option value="abierto" {% if estado=='abierto' %}selected{% endif %}>Abierto</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">Nombre / Apellidos</label>
+                    <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+                        placeholder="Buscar…">
+                </div>
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">Formulario (ID o nombre)</label>
+                    <input type="text" name="formulario" value="{{ formulario_filter }}"
+                        class="form-control form-control-sm" placeholder="Ej: 12 o Formulario">
+                </div>
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">Desde</label>
+                    <input type="date" name="fecha_desde" value="{{ fecha_desde }}"
+                        class="form-control form-control-sm">
+                </div>
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">Hasta</label>
+                    <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}"
+                        class="form-control form-control-sm">
+                </div>
+                <div class="col-sm-2 d-flex gap-2">
+                    <div class="flex-fill">
+                        <label class="form-label small mb-1">Por página</label>
+                        <select name="per_page" class="form-select form-select-sm">
+                            {% for opt in allowed_per_page %}
+                            <option value="{{ opt }}" {% if opt==per_page %}selected{% endif %}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button class="btn btn-primary btn-sm"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                    <a href="{{ url_for('panel_admin') }}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+                </div>
+            </form>
+
+            {% if respuestas %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="text-center">
+                        <tr>
+                            <th>ID Respuesta</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Formulario</th>
+                            <th>Fecha de Respuesta</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in respuestas %}
+                        <tr>
+                            <td class="text-center">{{ r.id_respuesta }}</td>
+                            <td>{{ r.nombre }}</td>
+                            <td>{{ r.apellidos }}</td>
+                            <td>{{ r.formulario }}</td>
+                            <td class="text-center">
+                                {% if r.get('fecha_respuesta') %}
+                                {{ r.fecha_respuesta_fmt }}
+                                {% else %}
+                                Fecha no disponible
+                                {% endif %}
+                            </td>
+                            <td class="text-center">{{ 'Bloqueado' if r.bloqueado else 'Abierto' }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('detalle_respuesta', id_respuesta=r.id_respuesta) }}"
+                                    class="btn btn-sm btn-action-detail" title="Ver detalle y asignar ponderaciones">
+                                    <i class="bi bi-eye me-1"></i> Detalle
+                                </a>
+                                {% if r.bloqueado %}
+                                <form method="POST"
+                                    action="{{ url_for('abrir_respuesta', id_respuesta=r.id_respuesta) }}"
+                                    style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-action-reopen"
+                                        title="Reabrir para editar"><i class="bi bi-unlock me-1"></i>Reabrir</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between my-3">
+                <div>
+                    {% if page > 1 %}
+                    <a href="{{ url_for('panel_admin', page=1, per_page=per_page, estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}"
+                        class="btn btn-outline-primary btn-sm me-2">
+                        <i class="bi bi-skip-backward"></i>
+                    </a>
+                    <a href="{{ url_for('panel_admin', page=page-1, per_page=per_page, estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}"
+                        class="btn btn-outline-primary btn-sm me-2">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1 d-flex justify-content-center">
+                    <nav aria-label="Paginación respuestas">
+                        <ul class="pagination pagination-sm mb-0">
+                            {% set window = 3 %}
+                            {% set start = page - window if page - window > 1 else 1 %}
+                            {% set end = page + window if page + window < total_pages else total_pages %} <li
+                                class="page-item {% if page == 1 %}disabled{% endif %}">
+                                <a class="page-link"
+                                    href="{{ url_for('panel_admin', page=1, per_page=per_page, estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">1</a>
+                                </li>
+                                {% if start > 2 %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                                {% for p in range(start, end + 1) %}
+                                {% if p != 1 and p != total_pages %}
+                                <li class="page-item {% if p == page %}active{% endif %}">
+                                    <a class="page-link"
+                                        href="{{ url_for('panel_admin', page=p, per_page=per_page, estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">{{
+                                        p }}</a>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                                {% if end < total_pages - 1 %} <li class="page-item disabled"><span
+                                        class="page-link">…</span></li>
+                                    {% endif %}
+                                    {% if total_pages > 1 %}
+                                    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                                        <a class="page-link"
+                                            href="{{ url_for('panel_admin', page=total_pages, per_page=per_page, estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">{{
+                                            total_pages }}</a>
+                                    </li>
+                                    {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                <div class="text-end">
+                    {% if has_next %}
+                    <a href="{{ url_for('panel_admin', page=page+1, per_page=per_page, estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}"
+                        class="btn btn-outline-primary btn-sm me-2">
+                        Siguiente <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <a href="{{ url_for('panel_admin', page=total_pages, per_page=per_page, estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}"
+                        class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-skip-forward"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <form method="get" class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                <input type="hidden" name="page" value="1">
+                <label for="per_page" class="col-form-label small mb-0">Respuestas por página:</label>
+                <select name="per_page" id="per_page" class="form-select form-select-sm w-auto"
+                    onchange="this.form.submit()">
+                    {% for opt in allowed_per_page %}
+                    <option value="{{ opt }}" {% if opt==per_page %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <div class="text-center text-muted small mb-3">
+                Mostrando
+                {% set start_index = (page - 1) * per_page + 1 if total_count else 0 %}
+                {% set end_index = (page - 1) * per_page + respuestas|length %}
+                {{ start_index }}–{{ end_index }} de {{ total_count }} respuestas
+            </div>
+            {% else %}
+            <div class="alert alert-warning text-center">Aún no hay respuestas registradas.</div>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

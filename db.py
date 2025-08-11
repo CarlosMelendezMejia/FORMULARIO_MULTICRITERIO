@@ -1,0 +1,62 @@
+import os
+import threading
+from mysql.connector import pooling
+
+# Pool de conexiones global. Se inicializa en :func:`init_pool`.
+_pool = None
+_pool_lock = threading.Lock()
+
+
+def init_pool():
+    """Inicializa el pool de conexiones si aún no existe."""
+    global _pool
+    with _pool_lock:
+        if _pool is not None:
+            return
+
+        try:
+            host = os.getenv("DB_HOST")
+            user = os.getenv("DB_USER")
+            password = os.getenv("DB_PASSWORD")
+            database = os.getenv("DB_NAME")
+
+            missing = [
+                name
+                for name, value in (
+                    ("DB_HOST", host),
+                    ("DB_USER", user),
+                    ("DB_PASSWORD", password),
+                    ("DB_NAME", database),
+                )
+                if not value
+            ]
+            if missing:
+                raise RuntimeError(
+                    "Variables de entorno faltantes: " + ", ".join(missing)
+                )
+
+            pool_size = int(os.getenv("DB_POOL_SIZE", "5"))
+            _pool = pooling.MySQLConnectionPool(
+                pool_name="app_pool",
+                pool_size=pool_size,
+                host=host,
+                user=user,
+                password=password,
+                database=database,
+                connection_timeout=10,
+            )
+        except Exception:  # pragma: no cover - logging side effect
+            from app import app
+
+            app.logger.exception("Error al inicializar el pool de conexiones")
+            raise
+
+
+def get_connection():
+    """Obtener una conexión del pool de conexiones."""
+    if _pool is None:
+        init_pool()
+    conn = _pool.get_connection()
+    conn.autocommit = True
+    return conn
+
