@@ -1,17 +1,14 @@
-// JSON estático de dimensiones (fácil de editar)
-// Cada entrada: valor, titulo, descripcion
-const DIMENSIONES_DATA = [
-    {
-        "valor": 1,
-        "titulo": "Conocimientos y habilidades",
-        "descripcion": "La y el formador de docentes de la UNAM debe poseer un amplio conocimiento de temas pedagógicos y didácticos que le permita guiar al profesorado en la comprensión y aplicación de teorías del aprendizaje, fomentando un ambiente de trabajo colaborativo y crítico. Debe dominar metodologías activas del aprendizaje, manejo de tecnologías digitales aplicadas a entornos educativos, así como tener experiencia y sensibilidad frente a temas estructurales y emergentes. Además, debe estar familiarizado con las diferentes etapas del desarrollo cognitivo y emocional del alumnado, conocer las tendencias actuales en educación, y poseer habilidades prácticas esenciales como comunicación clara, evaluación del aprendizaje, retroalimentación constructiva y liderazgo educativo que inspire una mentalidad de crecimiento académico, profesional y personal."
-    },
-    {
-        "valor": 2,
-        "titulo": "Responsabilidades",
-        "descripcion": "Efecto que tiene el puesto sobre los objetivos, el cuidado de los recursos materiales, y compromiso adquirido con el CFOP así como, con el profesorado participante que se inscribe y asiste a las actividades académicas ofertadas."
-    }
-];
+let DIMENSIONES_DATA = [];
+
+function cargarDimensiones() {
+    return fetch('/static/data/dimensiones.json')
+        .then(response => response.json())
+        .then(data => {
+            DIMENSIONES_DATA = data;
+            renderTablaDimensiones('tabla-dimensiones');
+        })
+        .catch(err => console.error('Error al cargar dimensiones:', err));
+}
 
 function renderTablaDimensiones(containerId) {
     const container = document.getElementById(containerId);
@@ -38,5 +35,5 @@ function renderTablaDimensiones(containerId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderTablaDimensiones('tabla-dimensiones');
+    cargarDimensiones();
 });
