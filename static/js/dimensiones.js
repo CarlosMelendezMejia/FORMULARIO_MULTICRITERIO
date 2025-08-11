@@ -46,7 +46,7 @@ function renderTablaDimensiones(containerId) {
     <tbody>
       ${DIMENSIONES_DATA.map(d => `
         <tr>
-          <td class="text-center fw-bold">${d.valor}</td>
+          <td class="text-center fw-bold">D${d.valor}</td>
           <td>${d.titulo}</td>
           <td>${d.descripcion}</td>
         </tr>`).join('')}

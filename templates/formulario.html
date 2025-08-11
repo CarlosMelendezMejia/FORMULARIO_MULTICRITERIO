@@ -92,6 +92,7 @@
                     <table class="table table-bordered align-middle">
                         <thead>
                             <tr>
+                                <th style="width:90px" class="text-center">Dimensión</th>
                                 <th class="th-factores">Factores</th>
                                 <th class="th-definicion">Definición</th>
                                 <th class="th-ponderacion">Ponderación</th>
@@ -100,9 +101,10 @@
                         <tbody>
                             {% for factor in factores %}
                             <tr>
+                                <td class="text-center align-middle"><span class="badge bg-secondary dimension-badge" title="Dimensión">D{{ factor.dimension }}</span></td>
                                 <td>
-                                    <span class="color-label factor-item" data-factor-id="{{ factor.id }}" style="background-color: {{ factor.color or '#cccccc' }};">{{ factor.nombre }}</span>
-                                    <span class="badge bg-secondary ms-1 dimension-badge" title="Dimensión">D{{ factor.dimension }}</span>
+                                    {% set bg = factor.color or '#cccccc' %}
+                                    <span class="color-label factor-item" data-factor-id="{{ factor.id }}" data-color="{{ bg }}">{{ factor.nombre }}</span>
                                     <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
                                 </td>
                                 <td>{{ factor.descripcion }}</td>
@@ -183,6 +185,14 @@
     </script>
     <script src="{{ url_for('static', filename='js/dimensiones.js') }}"></script>
     <script src="{{ url_for('static', filename='js/factores.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.factor-item[data-color]').forEach(el => {
+                const c = el.getAttribute('data-color');
+                if (c) el.style.backgroundColor = c;
+            });
+        });
+    </script>
 </body>
 
 </html>
