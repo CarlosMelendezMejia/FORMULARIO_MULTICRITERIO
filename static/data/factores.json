@@ -1,12 +1,42 @@
 [
-  { "id": 1, "requisito": "Conjunto de conocimientos, habilidades y destrezas que se adquieren en la educación formal y a través de los diversos niveles o grados de escolarización que permiten desempeñarse en un ambiente laboral específico. Incluye también la formación académica en educación u otros aspectos relacionados con la didáctica, psicología educativa o materias afines." },
-  { "id": 2, "requisito": "Conjunto de actividades académicas que se cursan y acreditan las cuales permiten introducir, renovar y perfeccionar el conocimiento en materia de educación universitaria que favorecen el desempeño como formador." },
-  { "id": 3, "requisito": "Conjunto de premios, honores o menciones especiales que se han recibido en reconocimiento a la excelencia, logros o contribuciones en materia de formación docente y docencia universitaria." },
-  { "id": 4, "requisito": "Práctica adquirida a través del tiempo en el desempeño de una actividad profesional y académica en la educación universitaria, la cual puede determinarse en temporalidades (0-6 meses, 6 meses-1 año, 2 años, 3 años 5 o más años)." },
-  { "id": 5, "requisito": "Conjunto de conocimientos y hablidades específicas en temas, técnicas, metodologías o habilidades para desempeñarse como formador del profesorado universitario." },
-  { "id": 6, "requisito": "Se refiere a las contribuciones intelectuales que ha realizado en su campo de conocimiento aplicado a la formación docente tales como: artículos científicos en revistas académicas, ponencias, proyectos de investigación, autoría o coautoría de libros o capítulos." },
-  { "id": 7, "requisito": "Conjunto de rasgos y modos de comportamiento que conforman el carácter o la identidad de una persona o una comunidad. Para el caso del Ethos de un formador docente de la UNAM, éste estará conformado por el conocimiento de la institución (proyecto educativo), normatividad, valores y código de ética." },
-  { "id": 8, "requisito": "Predisposición cognitiva, emocional y conductual ante situaciones, personas o eventos que influye en la manera en que un individuo responde a su entorno." },
-  { "id": 9, "requisito": "Compromiso y resguardo de la documentación oficial, así como el cumplimiento de los procesos de gestión que la institución determine para la certificación de actividades de formación docente." },
-  { "id": 10, "requisito": "Resguardo de los equipos de cómputo, materiales didácticos y demás insumos que le sean proporcionados para el desarrollo de actividades para la formación y profesionalización docente." }
+  {
+    "id": 1,
+    "requisito": "Escolaridad disciplinar y escolaridad en educación o campos afines"
+  },
+  {
+    "id": 2,
+    "requisito": "Actividades académicas vinculadas a la formación y profesionalización docente, la educación y temáticas afines."
+  },
+  {
+    "id": 3,
+    "requisito": "Premios o reconocimientos otorgados por instancias colegiadas de la UNAM o por instituciones de prestigio nacionales e internacionales, preferentemente vinculadas con la formación docente universitaria."
+  },
+  {
+    "id": 4,
+    "requisito": "Experiencia docente en niveles educativos (bachillerato, licenciatura, posgrado); En el diseño de actividades formativas para el profesorado universitario; En la impartición de actividades formativas al profesorado universitario; Evaluación y retroalimentación en la formación docente; En gestión como: dirección, jefatura o coordinación"
+  },
+  {
+    "id": 5,
+    "requisito": "Conocimiento didáctico y andragógico; Conocimientos en elaboración de material didáctico para la formación docente; Conocimiento de didácticas específicas; Conocimientos y habilidades socioemocionales para la formación docente universitaria (empatía, adaptabilidad, creatividad, pensamiento crítico, etc.); Conocimiento en temas transversales y emergentes de la educación universitaria; Conocimiento tecnológico sobre el uso de herramientas y plataformas tecnológicas para la formación docente tales como: Ambientes Virtuales de Aprendizaje (Moodle, Classroom, etc.) y plataformas de videoconferencia para actividades sincrónicas (Zoom, Webex, Teams, Meet, etc.)"
+  },
+  {
+    "id": 6,
+    "requisito": "Publicaciones en materia educativa vinculada con la formación y profesionalización docente; Gestión y participación en proyectos de formación y profesionalización docente; Participación como ponente en eventos académicos de formación y profesionalización docente nacionales e internacionales"
+  },
+  {
+    "id": 7,
+    "requisito": "Conocimiento sobre el proyecto educativo y normatividad universitaria; Conocimiento sobre la política institucional sobre la formación y profesionalización docente; Conocimiento sobre el código de ética y valores de la institución"
+  },
+  {
+    "id": 8,
+    "requisito": "Liderazgo para influir y guiar a un grupo de docentes en formación; Motivación para incentivar el entusiasmo y el esfuerzo del profesorado en los procesos de formación y profesionalización de la docencia universitaria; Compromiso con la institucionalización de la formación y la profesionalización docente universitaria; Proactividad para actuar con iniciativa en la formación y profesionalización docente universitaria."
+  },
+  {
+    "id": 9,
+    "requisito": "Compromiso y resguardo de la documentación oficial así como el cumplimiento de los procesos de gestión que la institución determine."
+  },
+  {
+    "id": 10,
+    "requisito": "Resguardo de los equipos de cómputo, materiales didácticos y demás insumos que le sean proporcionados para el desarrollo de actividades para la formación y profesionalización docente, etc."
+  }
 ]
