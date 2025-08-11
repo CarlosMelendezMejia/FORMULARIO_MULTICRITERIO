@@ -1,5 +1,23 @@
+function baseStaticFactors() {
+  const attr = document.documentElement.getAttribute('data-app-prefix');
+  if (attr) return attr.replace(/\/$/, '') + '/static/data/';
+  const script = Array.from(document.scripts).find(s => s.src && s.src.includes('/static/'));
+  if (script) {
+    try {
+      const url = new URL(script.src, window.location.origin);
+      const parts = url.pathname.split('/');
+      const idx = parts.lastIndexOf('static');
+      if (idx > 1) {
+        const prefix = parts.slice(0, idx).join('/');
+        return (prefix || '') + '/static/data/';
+      }
+    } catch(_) {}
+  }
+  return '/static/data/';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  fetch('/static/data/factores.json')
+  fetch(baseStaticFactors() + 'factores.json')
     .then(response => response.json())
     .then(data => {
       const requisitos = {};
