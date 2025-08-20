@@ -15,8 +15,15 @@
     <div class="container py-5">
         <div class="admin-container text-center">
             <h2>Confirmar eliminación</h2>
-            <p>Se encontraron {{ respuestas }} respuestas asociadas a este formulario.
-                ¿Deseas eliminarlo de todos modos?</p>
+            <p>
+                {% if respuestas and respuestas|int > 0 %}
+                    Se encontraron {{ respuestas }} respuestas asociadas a este formulario.
+                    ¿Deseas eliminarlo de todos modos?
+                {% else %}
+                    Este formulario no tiene respuestas asociadas.
+                    ¿Deseas eliminarlo?
+                {% endif %}
+            </p>
 
             <form method="POST" action="{{ url_for('eliminar_formulario', id=id_formulario) }}" class="d-inline">
                 <input type="hidden" name="confirm" value="yes">

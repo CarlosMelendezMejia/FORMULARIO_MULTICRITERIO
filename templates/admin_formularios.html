@@ -58,7 +58,7 @@
                             </td>
                             <td class="text-center align-middle">
                                 {% if f.password_hash %}
-                                    <code class="small">{{ f.password_hash }}</code>
+                                    <code class="small" title="{{ f.password_hash }}">{{ f.password_hash[:5] }}...</code>
                                 {% else %}
                                     <span class="text-muted small">—</span>
                                 {% endif %}

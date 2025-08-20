@@ -307,7 +307,8 @@ def formulario_password(id_usuario):
     )
     asignacion = g.cursor.fetchone()
     if not asignacion:
-        return "No se encontró un formulario asignado."
+        app.logger.info("Sin formulario asignado usuario=%s (password)", id_usuario)
+        return render_template("formulario_no_disponible.html"), 404
 
     id_formulario = asignacion["id_formulario"]
     session_key = f"formulario_{id_formulario}_acceso"
@@ -397,7 +398,7 @@ def mostrar_formulario(id_usuario):
 
     if not asignacion:
         app.logger.info("Sin formulario asignado usuario=%s", id_usuario)
-        return "No se encontró un formulario asignado."
+        return render_template("formulario_no_disponible.html"), 404
 
     id_formulario = asignacion["id_formulario"]
 
@@ -981,7 +982,8 @@ def eliminar_formulario(id):
     confirm = request.form.get("confirm")
     expected = request.form.get("expected_count")
 
-    if total_respuestas > 0 and confirm != "yes":
+    # Siempre solicitar confirmación, tenga o no respuestas
+    if confirm != "yes":
         return render_template(
             "confirmar_eliminacion_formulario.html",
             id_formulario=id,
