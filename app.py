@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import os
 import mysql.connector
 from decimal import Decimal, InvalidOperation
-from dotenv import load_dotenv, set_key, unset_key, dotenv_values
+from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
 import bleach
 from flask_caching import Cache
 import logging
@@ -20,21 +21,6 @@ load_dotenv(DOTENV_PATH)
 from db import get_connection
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
-
-# Helper para leer variables que pudieron escribirse a .env después del arranque
-def get_env_var(key: str):
-    if not key:
-        return None
-    val = os.getenv(key)
-    if val is not None:
-        return val
-    # Fallback: leer archivo .env sin pisar el entorno
-    try:
-        values = dotenv_values(DOTENV_PATH)
-        return values.get(key)
-    except Exception:
-        return None
-
 
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
@@ -290,7 +276,7 @@ def formulario_password(id_usuario):
     get_db()
     g.cursor.execute(
         """
-        SELECT a.id_formulario, f.requiere_password, f.password_env_key
+        SELECT a.id_formulario, f.requiere_password, f.password_hash
         FROM asignacion a
         JOIN formulario f ON a.id_formulario = f.id
         LEFT JOIN respuesta r
@@ -315,12 +301,11 @@ def formulario_password(id_usuario):
 
     if request.method == "POST":
         password = request.form.get("password", "").strip()
-        expected = get_env_var(asignacion.get("password_env_key"))
-        if not expected:
+        expected_hash = asignacion.get("password_hash")
+        if not expected_hash:
             app.logger.warning(
-                "Contraseña del formulario %s no configurada (env key: %s)",
+                "Contraseña del formulario %s no configurada",
                 id_formulario,
-                asignacion.get("password_env_key"),
             )
             return (
                 render_template(
@@ -330,7 +315,7 @@ def formulario_password(id_usuario):
                 ),
                 500,
             )
-        if password == expected:
+        if check_password_hash(expected_hash, password):
             session[session_key] = True
             app.logger.debug(
                 "Sesión %s establecida para usuario=%s",
@@ -373,7 +358,7 @@ def mostrar_formulario(id_usuario):
     g.cursor.execute(
         """
         SELECT a.id_formulario, f.nombre AS nombre_formulario,
-               f.requiere_password, f.password_env_key
+               f.requiere_password, f.password_hash
         FROM asignacion a
         JOIN formulario f ON a.id_formulario = f.id
         LEFT JOIN respuesta r
@@ -875,34 +860,23 @@ def administrar_formularios():
             form_id = int(form_id)
             requiere_password = 1 if request.form.get("requiere_password") else 0
             password = request.form.get("password", "").strip()
-            current_key = request.form.get("current_password_env_key") or None
-            new_env_key = None
+            current_hash = request.form.get("current_password_hash") or None
+            new_hash = None
 
             if requiere_password:
                 if password:
-                    # Crear o actualizar clave
-                    new_env_key = f"FORM_{form_id}_PASSWORD"
-                    if current_key and current_key != new_env_key:
-                        unset_key(DOTENV_PATH, current_key)
-                        os.environ.pop(current_key, None)
-                    set_key(DOTENV_PATH, new_env_key, password)
-                    os.environ[new_env_key] = password
+                    new_hash = generate_password_hash(password)
                 else:
-                    # Mantener clave existente si ya había y no se envía nueva
-                    new_env_key = current_key
-                    if not new_env_key:
+                    new_hash = current_hash
+                    if not new_hash:
                         flash("Debe proporcionar una contraseña para activar la protección.")
                         return redirect(url_for("administrar_formularios"))
             else:
-                # Desactivar protección
-                if current_key:
-                    unset_key(DOTENV_PATH, current_key)
-                    os.environ.pop(current_key, None)
-                new_env_key = None
+                new_hash = None
 
             g.cursor.execute(
-                "UPDATE formulario SET requiere_password = %s, password_env_key = %s WHERE id = %s",
-                (requiere_password, new_env_key, form_id),
+                "UPDATE formulario SET requiere_password = %s, password_hash = %s WHERE id = %s",
+                (requiere_password, new_hash, form_id),
             )
             g.conn.commit()
             flash("Configuración de protección actualizada.")
@@ -912,31 +886,22 @@ def administrar_formularios():
         nombre = request.form.get("nombre", "").strip() or default_name
         requiere_password = 1 if request.form.get("requiere_password") else 0
         password = request.form.get("password", "").strip()
-        password_env_key = None
         if requiere_password:
             if not password:
                 flash("Debe proporcionar una contraseña para proteger el formulario.")
                 return redirect(url_for("administrar_formularios"))
-            # Insert provisionalmente para obtener ID y luego nombrar variable
+            password_hash = generate_password_hash(password)
             g.cursor.execute(
-                "INSERT INTO formulario (nombre, requiere_password, password_env_key) VALUES (%s, %s, %s)",
-                (nombre, requiere_password, None),
-            )
-            new_id = g.cursor.lastrowid
-            password_env_key = f"FORM_{new_id}_PASSWORD"
-            set_key(DOTENV_PATH, password_env_key, password)
-            os.environ[password_env_key] = password
-            g.cursor.execute(
-                "UPDATE formulario SET password_env_key=%s WHERE id=%s",
-                (password_env_key, new_id),
+                "INSERT INTO formulario (nombre, requiere_password, password_hash) VALUES (%s, %s, %s)",
+                (nombre, requiere_password, password_hash),
             )
             g.conn.commit()
-            app.logger.info("Formulario protegido creado '%s' id=%s ip=%s", nombre, new_id, ip)
+            app.logger.info("Formulario protegido creado '%s' ip=%s", nombre, ip)
             flash("Formulario protegido creado correctamente.")
             return redirect(url_for("administrar_formularios"))
         else:
             g.cursor.execute(
-                "INSERT INTO formulario (nombre, requiere_password, password_env_key) VALUES (%s, %s, %s)",
+                "INSERT INTO formulario (nombre, requiere_password, password_hash) VALUES (%s, %s, %s)",
                 (nombre, requiere_password, None),
             )
             g.conn.commit()
@@ -946,13 +911,13 @@ def administrar_formularios():
 
     g.cursor.execute(
         """
-        SELECT f.id, f.nombre, f.requiere_password, f.password_env_key,
+        SELECT f.id, f.nombre, f.requiere_password, f.password_hash,
                COUNT(r.id) AS respuestas
         FROM formulario f
         LEFT JOIN respuesta r
           ON r.id_formulario = f.id
          AND r.bloqueado = 1
-        GROUP BY f.id, f.nombre, f.requiere_password, f.password_env_key
+        GROUP BY f.id, f.nombre, f.requiere_password, f.password_hash
         ORDER BY f.id
         """
     )

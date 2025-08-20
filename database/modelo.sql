@@ -16,7 +16,7 @@ CREATE TABLE formulario (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     requiere_password TINYINT(1) DEFAULT NULL,
-    password_env_key VARCHAR(50) DEFAULT NULL
+    password_hash VARCHAR(255) DEFAULT NULL -- Hash de la contraseña del formulario
 );
 
 -- Tabla de asignación usuario-formulario
