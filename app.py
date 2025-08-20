@@ -329,6 +329,11 @@ def formulario_password(id_usuario):
             )
         if password == expected:
             session[session_key] = True
+            app.logger.debug(
+                "Sesión %s establecida para usuario=%s",
+                session_key,
+                id_usuario,
+            )
             return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
         return (
             render_template(
@@ -392,6 +397,11 @@ def mostrar_formulario(id_usuario):
     if asignacion.get("requiere_password"):
         session_key = f"formulario_{id_formulario}_acceso"
         if not session.get(session_key):
+            app.logger.debug(
+                "Clave de sesión %s no presente para usuario=%s, redirigiendo a formulario_password",
+                session_key,
+                id_usuario,
+            )
             return redirect(url_for("formulario_password", id_usuario=id_usuario))
         else:
             # Consumir la validación: se requerirá nuevamente en el próximo acceso
