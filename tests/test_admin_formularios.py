@@ -60,7 +60,7 @@ def test_crear_formulario_nombre_por_defecto(monkeypatch):
     assert len(cursor.queries) == 2
     assert "AUTO_INCREMENT AS siguiente_id" in cursor.queries[0][0]
     assert cursor.queries[1] == (
-        "INSERT INTO formulario (nombre, requiere_password, password_env_key) VALUES (%s, %s, %s)",
+        "INSERT INTO formulario (nombre, requiere_password, password_hash) VALUES (%s, %s, %s)",
         ("Formulario 01", 0, None),
     )
     assert conn.commit_called
@@ -131,10 +131,7 @@ def test_activar_password_formulario(monkeypatch):
     fetchone_results = [{"siguiente_id": None}]
     cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
 
-    set_calls = []
-    unset_calls = []
-    monkeypatch.setattr(app_module, "set_key", lambda env, key, val: set_calls.append((env, key, val)))
-    monkeypatch.setattr(app_module, "unset_key", lambda env, key: unset_calls.append((env, key)))
+    monkeypatch.setattr(app_module, "generate_password_hash", lambda pw: f"hash-{pw}")
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -149,29 +146,24 @@ def test_activar_password_formulario(monkeypatch):
     assert len(cursor.queries) == 2
     assert "AUTO_INCREMENT AS siguiente_id" in cursor.queries[0][0]
     assert cursor.queries[1] == (
-        "UPDATE formulario SET requiere_password = %s, password_env_key = %s WHERE id = %s",
-        (1, "FORM_1_PASSWORD", 1),
+        "UPDATE formulario SET requiere_password = %s, password_hash = %s WHERE id = %s",
+        (1, "hash-secret", 1),
     )
     assert conn.commit_called
-    assert set_calls == [(app_module.DOTENV_PATH, 'FORM_1_PASSWORD', 'secret')]
-    assert unset_calls == []
 
 
 def test_desactivar_password_formulario(monkeypatch):
     fetchone_results = [{"siguiente_id": None}]
     cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
 
-    set_calls = []
-    unset_calls = []
-    monkeypatch.setattr(app_module, "set_key", lambda env, key, val: set_calls.append((env, key, val)))
-    monkeypatch.setattr(app_module, "unset_key", lambda env, key: unset_calls.append((env, key)))
+    monkeypatch.setattr(app_module, "generate_password_hash", lambda pw: f"hash-{pw}")
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
             sess["is_admin"] = True
         resp = client.post(
             "/admin/formularios",
-            data={"id_formulario": "1", "current_password_env_key": "FORM_1_PASSWORD"},
+            data={"id_formulario": "1", "current_password_hash": "hash-old"},
         )
         assert resp.status_code == 302
         assert resp.headers["Location"].endswith("/admin/formularios")
@@ -179,12 +171,10 @@ def test_desactivar_password_formulario(monkeypatch):
     assert len(cursor.queries) == 2
     assert "AUTO_INCREMENT AS siguiente_id" in cursor.queries[0][0]
     assert cursor.queries[1] == (
-        "UPDATE formulario SET requiere_password = %s, password_env_key = %s WHERE id = %s",
+        "UPDATE formulario SET requiere_password = %s, password_hash = %s WHERE id = %s",
         (0, None, 1),
     )
     assert conn.commit_called
-    assert set_calls == []
-    assert unset_calls == [(app_module.DOTENV_PATH, 'FORM_1_PASSWORD')]
 
 
 def test_abrir_formulario_requires_admin(monkeypatch):

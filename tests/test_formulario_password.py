@@ -1,6 +1,7 @@
 import os
 import sys
 import pytest
+from werkzeug.security import generate_password_hash
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -48,21 +49,22 @@ def create_dummy(monkeypatch, fetchone_results=None, fetchall_results=None):
     return cursor, conn
 
 
-def assignment_dict():
+def assignment_dict(hash_value):
     return {
         "id_formulario": 2,
         "nombre_formulario": "F1",
         "requiere_password": 1,
-        "password_env_key": "FORM_PASSWORD",
+        "password_hash": hash_value,
     }
 
 
 def test_password_correcta(monkeypatch):
+    hash_secret = generate_password_hash("secret")
     fetchone_results = [
-        assignment_dict(),
-        assignment_dict(),
-        assignment_dict(),
-        assignment_dict(),
+        assignment_dict(hash_secret),
+        assignment_dict(hash_secret),
+        assignment_dict(hash_secret),
+        assignment_dict(hash_secret),
         {
             "id": 1,
             "nombre": "N",
@@ -73,7 +75,6 @@ def test_password_correcta(monkeypatch):
     ]
     fetchall_results = [[]]
     cursor, _ = create_dummy(monkeypatch, fetchone_results, fetchall_results)
-    monkeypatch.setenv("FORM_PASSWORD", "secret")
     monkeypatch.setattr(app_module, "get_factores", lambda: [{"id": 1, "nombre": "Factor"}])
     monkeypatch.setattr(app_module, "is_formulario_bloqueado", lambda *args, **kwargs: False)
 
@@ -98,14 +99,14 @@ def test_password_correcta(monkeypatch):
 
 
 def test_password_incorrecta(monkeypatch):
+    hash_secret = generate_password_hash("secret")
     fetchone_results = [
-        assignment_dict(),
-        assignment_dict(),
-        assignment_dict(),
-        assignment_dict(),
+        assignment_dict(hash_secret),
+        assignment_dict(hash_secret),
+        assignment_dict(hash_secret),
+        assignment_dict(hash_secret),
     ]
     cursor, _ = create_dummy(monkeypatch, fetchone_results)
-    monkeypatch.setenv("FORM_PASSWORD", "secret")
 
     with app.test_client() as client:
         resp = client.get("/formulario/1")
@@ -126,15 +127,14 @@ def test_password_incorrecta(monkeypatch):
     assert len(cursor.queries) >= 3
 
 
-def test_password_env_key_inexistente(monkeypatch, caplog):
+def test_password_no_configurada(monkeypatch, caplog):
     fetchone_results = [
-        assignment_dict(),
-        assignment_dict(),
-        assignment_dict(),
-        assignment_dict(),
+        assignment_dict(None),
+        assignment_dict(None),
+        assignment_dict(None),
+        assignment_dict(None),
     ]
     cursor, _ = create_dummy(monkeypatch, fetchone_results)
-    monkeypatch.delenv("FORM_PASSWORD", raising=False)
     caplog.set_level("WARNING")
 
     with app.test_client() as client:
