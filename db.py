@@ -1,5 +1,12 @@
+"""Gestión del pool de conexiones a la base de datos.
+
+Ofrece utilidades para inicializar, obtener y cerrar el pool mediante
+:func:`close_pool`.
+"""
+
 import os
 import threading
+import atexit
 from mysql.connector import pooling
 
 # Pool de conexiones global. Se inicializa en :func:`init_pool`.
@@ -59,4 +66,22 @@ def get_connection():
     conn = _pool.get_connection()
     conn.autocommit = True
     return conn
+
+
+def close_pool():
+    """Cerrar todas las conexiones activas del pool."""
+    global _pool
+    with _pool_lock:
+        if _pool is None:
+            return
+        while True:
+            try:
+                conn = _pool.get_connection()
+            except Exception:
+                break
+            conn.close()
+        _pool = None
+
+
+atexit.register(close_pool)
 
