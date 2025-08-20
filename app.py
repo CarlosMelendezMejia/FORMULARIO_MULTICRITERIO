@@ -2,22 +2,26 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import os
 import mysql.connector
 from decimal import Decimal, InvalidOperation
-from dotenv import load_dotenv, set_key, unset_key
+from dotenv import load_dotenv, set_key, unset_key, dotenv_values
 import bleach
 from flask_caching import Cache
 import logging
 import io
 import csv
+from pathlib import Path
 from concurrent_log_handler import ConcurrentRotatingFileHandler
 
-load_dotenv()
+app = Flask(__name__)
+
+DOTENV_PATH = Path(app.root_path) / ".env"
+DOTENV_PATH.touch(exist_ok=True)
+load_dotenv(DOTENV_PATH)
 
 from db import get_connection
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 # Helper para leer variables que pudieron escribirse a .env después del arranque
-from dotenv import dotenv_values
 def get_env_var(key: str):
     if not key:
         return None
@@ -26,13 +30,12 @@ def get_env_var(key: str):
         return val
     # Fallback: leer archivo .env sin pisar el entorno
     try:
-        values = dotenv_values(".env")
+        values = dotenv_values(DOTENV_PATH)
         return values.get(key)
     except Exception:
         return None
 
 
-app = Flask(__name__)
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
     raise RuntimeError("SECRET_KEY environment variable not set")
@@ -880,9 +883,9 @@ def administrar_formularios():
                     # Crear o actualizar clave
                     new_env_key = f"FORM_{form_id}_PASSWORD"
                     if current_key and current_key != new_env_key:
-                        unset_key(".env", current_key)
+                        unset_key(DOTENV_PATH, current_key)
                         os.environ.pop(current_key, None)
-                    set_key(".env", new_env_key, password)
+                    set_key(DOTENV_PATH, new_env_key, password)
                     os.environ[new_env_key] = password
                 else:
                     # Mantener clave existente si ya había y no se envía nueva
@@ -893,7 +896,7 @@ def administrar_formularios():
             else:
                 # Desactivar protección
                 if current_key:
-                    unset_key(".env", current_key)
+                    unset_key(DOTENV_PATH, current_key)
                     os.environ.pop(current_key, None)
                 new_env_key = None
 
@@ -921,7 +924,7 @@ def administrar_formularios():
             )
             new_id = g.cursor.lastrowid
             password_env_key = f"FORM_{new_id}_PASSWORD"
-            set_key(".env", password_env_key, password)
+            set_key(DOTENV_PATH, password_env_key, password)
             os.environ[password_env_key] = password
             g.cursor.execute(
                 "UPDATE formulario SET password_env_key=%s WHERE id=%s",

@@ -153,7 +153,7 @@ def test_activar_password_formulario(monkeypatch):
         (1, "FORM_1_PASSWORD", 1),
     )
     assert conn.commit_called
-    assert set_calls == [('.env', 'FORM_1_PASSWORD', 'secret')]
+    assert set_calls == [(app_module.DOTENV_PATH, 'FORM_1_PASSWORD', 'secret')]
     assert unset_calls == []
 
 
@@ -184,7 +184,7 @@ def test_desactivar_password_formulario(monkeypatch):
     )
     assert conn.commit_called
     assert set_calls == []
-    assert unset_calls == [('.env', 'FORM_1_PASSWORD')]
+    assert unset_calls == [(app_module.DOTENV_PATH, 'FORM_1_PASSWORD')]
 
 
 def test_abrir_formulario_requires_admin(monkeypatch):
