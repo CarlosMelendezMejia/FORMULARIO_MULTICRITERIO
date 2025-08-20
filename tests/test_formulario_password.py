@@ -123,4 +123,31 @@ def test_password_incorrecta(monkeypatch):
         assert resp4.status_code == 302
         assert resp4.headers["Location"].endswith("/formulario/1/password")
 
-    assert len(cursor.queries) >= 4
+    assert len(cursor.queries) >= 3
+
+
+def test_password_env_key_inexistente(monkeypatch, caplog):
+    fetchone_results = [
+        assignment_dict(),
+        assignment_dict(),
+        assignment_dict(),
+        assignment_dict(),
+    ]
+    cursor, _ = create_dummy(monkeypatch, fetchone_results)
+    monkeypatch.delenv("FORM_PASSWORD", raising=False)
+    caplog.set_level("WARNING")
+
+    with app.test_client() as client:
+        resp = client.get("/formulario/1")
+        assert resp.status_code == 302
+        assert resp.headers["Location"].endswith("/formulario/1/password")
+
+        resp2 = client.get("/formulario/1/password")
+        assert resp2.status_code == 200
+
+        resp3 = client.post("/formulario/1/password", data={"password": "whatever"})
+        assert resp3.status_code == 500
+        assert "no está configurada" in resp3.get_data(as_text=True).lower()
+
+    assert len(cursor.queries) >= 3
+    assert any("no configurada" in rec.message.lower() for rec in caplog.records)

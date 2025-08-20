@@ -312,7 +312,21 @@ def formulario_password(id_usuario):
 
     if request.method == "POST":
         password = request.form.get("password", "").strip()
-        expected = get_env_var(asignacion.get("password_env_key")) or ""
+        expected = get_env_var(asignacion.get("password_env_key"))
+        if not expected:
+            app.logger.warning(
+                "Contraseña del formulario %s no configurada (env key: %s)",
+                id_formulario,
+                asignacion.get("password_env_key"),
+            )
+            return (
+                render_template(
+                    "formulario_password.html",
+                    usuario_id=id_usuario,
+                    error="La contraseña del formulario no está configurada",
+                ),
+                500,
+            )
         if password == expected:
             session[session_key] = True
             return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
@@ -507,6 +521,7 @@ def guardar_respuesta():
     # 2. Guardar información en la base de datos dentro de una transacción
     try:
         # Iniciar una transacción limpia (rollback previo por si quedó algo abierto)
+        g.conn.start_transaction()
         g.conn.rollback()
 
         # Actualizar los datos del usuario
@@ -1059,7 +1074,8 @@ def administrar_factores():
 
     if request.method == "POST":
         try:
-            # Rollback defensivo para limpiar cualquier estado previo
+            # Iniciar transacción y limpiar cualquier estado previo
+            g.conn.start_transaction()
             g.conn.rollback()
             # Actualizar factores existentes
             for f in factores:
