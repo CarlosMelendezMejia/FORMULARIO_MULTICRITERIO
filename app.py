@@ -35,6 +35,8 @@ app.secret_key = secret_key
 # de entorno APP_PREFIX. En entornos de desarrollo (tests) se deja vacío para
 # no romper los paths existentes.
 APP_PREFIX = os.getenv("APP_PREFIX", "").rstrip("/")
+if APP_PREFIX and not APP_PREFIX.startswith("/"):
+    APP_PREFIX = "/" + APP_PREFIX
 if APP_PREFIX:
     app.config["APPLICATION_ROOT"] = APP_PREFIX
 
@@ -61,6 +63,20 @@ if APP_PREFIX:
             return resp(environ, start_response)
 
     app.wsgi_app = PrefixMiddleware(app.wsgi_app, APP_PREFIX)
+
+# Asegurar que la cookie de sesión sea válida bajo un prefijo
+# Si se despliega la app bajo un subpath, fijamos el "path" de la cookie
+# explícitamente para que el navegador envíe la cookie tras redirecciones.
+def _compute_cookie_path(prefix: str) -> str:
+    if not prefix:
+        return "/"
+    # Garantizar que comience con '/'
+    return prefix if prefix.startswith("/") else f"/{prefix}"
+
+app.config.setdefault("SESSION_COOKIE_SAMESITE", "Lax")
+app.config.setdefault("SESSION_COOKIE_HTTPONLY", True)
+app.config.setdefault("SESSION_COOKIE_SECURE", False)  # Cambiar a True si se usa HTTPS en prod
+app.config["SESSION_COOKIE_PATH"] = _compute_cookie_path(APP_PREFIX)
 
 # Configuración de registro
 os.makedirs("static/logs", exist_ok=True)
@@ -241,8 +257,8 @@ def teardown_db(exception):
 
 @app.after_request
 def add_no_cache_headers(response):
-    """Evita el cacheo de páginas protegidas para rutas de administrador."""
-    if request.path.startswith("/admin"):
+    """Evita el cacheo de páginas protegidas para rutas de administrador y formulario."""
+    if request.path.startswith("/admin") or request.path.startswith("/formulario"):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
@@ -317,10 +333,13 @@ def formulario_password(id_usuario):
             )
         if check_password_hash(expected_hash, password):
             session[session_key] = True
+            session.modified = True  # Forzar escritura de cookie de sesión
             app.logger.debug(
-                "Sesión %s establecida para usuario=%s",
+                "Sesión %s establecida para usuario=%s (script_root=%s, cookie_path=%s)",
                 session_key,
                 id_usuario,
+                getattr(request, 'script_root', ''),
+                app.config.get('SESSION_COOKIE_PATH')
             )
             return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
         return (
@@ -385,6 +404,15 @@ def mostrar_formulario(id_usuario):
     if asignacion.get("requiere_password"):
         session_key = f"formulario_{id_formulario}_acceso"
         if not session.get(session_key):
+            try:
+                present_keys = list(session.keys())
+            except Exception:
+                present_keys = []
+            app.logger.debug(
+                "Sesión no contiene clave requerida. keys=%s buscada=%s",
+                present_keys,
+                session_key,
+            )
             app.logger.debug(
                 "Clave de sesión %s no presente para usuario=%s, redirigiendo a formulario_password",
                 session_key,
@@ -518,9 +546,11 @@ def guardar_respuesta():
 
     # 2. Guardar información en la base de datos dentro de una transacción
     try:
-        # Iniciar una transacción limpia (rollback previo por si quedó algo abierto)
-        g.conn.start_transaction()
-        g.conn.rollback()
+        # Asegurar estado limpio: rollback defensivo por si quedó algo abierto
+        try:
+            g.conn.rollback()
+        except Exception:
+            pass
 
         # Actualizar los datos del usuario
         g.cursor.execute(
@@ -1052,9 +1082,11 @@ def administrar_factores():
 
     if request.method == "POST":
         try:
-            # Iniciar transacción y limpiar cualquier estado previo
-            g.conn.start_transaction()
-            g.conn.rollback()
+            # Limpiar cualquier estado previo
+            try:
+                g.conn.rollback()
+            except Exception:
+                pass
             # Actualizar factores existentes
             for f in factores:
                 nombre = request.form.get(f"nombre_{f['id']}")
