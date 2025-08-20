@@ -1,6 +1,7 @@
 import os
 import sys
 import pytest
+from werkzeug.security import generate_password_hash
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -131,7 +132,8 @@ def test_activar_password_formulario(monkeypatch):
     fetchone_results = [{"siguiente_id": None}]
     cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
 
-    monkeypatch.setattr(app_module, "generate_password_hash", lambda pw: f"hash-{pw}")
+    expected_hash = generate_password_hash("secret")
+    monkeypatch.setattr(app_module, "generate_password_hash", lambda pw: expected_hash)
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -147,7 +149,7 @@ def test_activar_password_formulario(monkeypatch):
     assert "AUTO_INCREMENT AS siguiente_id" in cursor.queries[0][0]
     assert cursor.queries[1] == (
         "UPDATE formulario SET requiere_password = %s, password_hash = %s WHERE id = %s",
-        (1, "hash-secret", 1),
+        (1, expected_hash, 1),
     )
     assert conn.commit_called
 
@@ -156,14 +158,14 @@ def test_desactivar_password_formulario(monkeypatch):
     fetchone_results = [{"siguiente_id": None}]
     cursor, conn = create_dummy(monkeypatch, fetchone_results=fetchone_results)
 
-    monkeypatch.setattr(app_module, "generate_password_hash", lambda pw: f"hash-{pw}")
+    current_hash = generate_password_hash("old")
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
             sess["is_admin"] = True
         resp = client.post(
             "/admin/formularios",
-            data={"id_formulario": "1", "current_password_hash": "hash-old"},
+            data={"id_formulario": "1", "current_password_hash": current_hash},
         )
         assert resp.status_code == 302
         assert resp.headers["Location"].endswith("/admin/formularios")

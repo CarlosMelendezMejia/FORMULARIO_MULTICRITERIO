@@ -10,6 +10,8 @@ import app as app_module
 
 app = app_module.app
 
+SECRET_HASH = generate_password_hash("secret")
+
 
 class DummyCursor:
     def __init__(self, fetchone_results=None, fetchall_results=None):
@@ -59,12 +61,11 @@ def assignment_dict(hash_value):
 
 
 def test_password_correcta(monkeypatch):
-    hash_secret = generate_password_hash("secret")
     fetchone_results = [
-        assignment_dict(hash_secret),
-        assignment_dict(hash_secret),
-        assignment_dict(hash_secret),
-        assignment_dict(hash_secret),
+        assignment_dict(SECRET_HASH),
+        assignment_dict(SECRET_HASH),
+        assignment_dict(SECRET_HASH),
+        assignment_dict(SECRET_HASH),
         {
             "id": 1,
             "nombre": "N",
@@ -99,12 +100,11 @@ def test_password_correcta(monkeypatch):
 
 
 def test_password_incorrecta(monkeypatch):
-    hash_secret = generate_password_hash("secret")
     fetchone_results = [
-        assignment_dict(hash_secret),
-        assignment_dict(hash_secret),
-        assignment_dict(hash_secret),
-        assignment_dict(hash_secret),
+        assignment_dict(SECRET_HASH),
+        assignment_dict(SECRET_HASH),
+        assignment_dict(SECRET_HASH),
+        assignment_dict(SECRET_HASH),
     ]
     cursor, _ = create_dummy(monkeypatch, fetchone_results)
 
