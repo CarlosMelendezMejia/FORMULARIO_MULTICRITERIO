@@ -8,10 +8,16 @@ import os
 import threading
 import atexit
 from mysql.connector import pooling
+from mysql.connector.errors import DatabaseError
 
 # Pool de conexiones global. Se inicializa en :func:`init_pool`.
 _pool = None
 _pool_lock = threading.Lock()
+
+
+class PoolExhaustedError(RuntimeError):
+    """Raised when the database connection pool cannot create new connections."""
+
 
 
 def init_pool():
@@ -52,6 +58,13 @@ def init_pool():
                 database=database,
                 connection_timeout=10,
             )
+        except DatabaseError as exc:  # pragma: no cover - logging side effect
+            if getattr(exc, "errno", None) == 1040:
+                raise PoolExhaustedError("Demasiadas conexiones a la base de datos") from exc
+            from app import app
+
+            app.logger.exception("Error al inicializar el pool de conexiones")
+            raise
         except Exception:  # pragma: no cover - logging side effect
             from app import app
 
