@@ -18,7 +18,7 @@ DOTENV_PATH = Path(app.root_path) / ".env"
 DOTENV_PATH.touch(exist_ok=True)
 load_dotenv(DOTENV_PATH)
 
-from db import get_connection
+from db import get_connection, PoolExhaustedError
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
@@ -552,6 +552,7 @@ def guardar_respuesta():
             g.conn.rollback()
         except Exception:
             pass
+        g.conn.start_transaction()
 
         # Actualizar los datos del usuario
         g.cursor.execute(
@@ -1089,6 +1090,7 @@ def administrar_factores():
                 g.conn.rollback()
             except Exception:
                 pass
+            g.conn.start_transaction()
             # Actualizar factores existentes
             for f in factores:
                 nombre = request.form.get(f"nombre_{f['id']}")
@@ -1454,6 +1456,15 @@ def export_ranking_csv():
 # ==============================
 # ERRORES
 # ==============================
+
+
+@app.errorhandler(PoolExhaustedError)
+def handle_pool_exhausted(error):
+    app.logger.error("Pool de conexiones agotado: %s", error)
+    return (
+        "La base de datos está saturada. Intenta de nuevo más tarde.",
+        503,
+    )
 
 
 @app.errorhandler(400)
