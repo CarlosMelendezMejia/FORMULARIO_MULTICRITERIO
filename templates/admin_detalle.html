@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 
-<body>
+<body class="global-bg">
     <div class="container py-5">
     {% include '_admin_nav.html' %}
         {% with messages = get_flashed_messages() %}

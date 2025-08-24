@@ -7,61 +7,95 @@
     <title>Inicio | Sistema de Evaluación</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/unam_ico.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <style>
-        .login-card {
-            background-color: white;
-            /* Fondo blanco */
-            border-radius: 10px;
-            /* Bordes redondeados para mejor apariencia */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            /* Sombra para mejor contraste */
-        }
-
-        .card-header {
-            background-color: #343a40;
-            /* Manteniendo el color oscuro del header */
-        }
-    </style>
 </head>
 
-<body>
-    <div class="container py-5">
-        <div class="login-card mx-auto">
-            <div class="card-header">
-                <h3 class="mb-0 text-white">Sistema de Evaluación</h3>
-                <!-- Icono de información -->
-                <i class="bi bi-info-circle info-icon" data-bs-toggle="modal" data-bs-target="#instruccionesModal"></i>
+<body class="global-bg index-page">
+    <div class="main-container">
+        <div class="login-wrapper">
+            <!-- Hero Section -->
+            <div class="hero-section fade-in">
+                <div class="floating-shapes">
+                    <div class="shape"></div>
+                    <div class="shape"></div>
+                    <div class="shape"></div>
+                </div>
+                
+                <h1 class="hero-title">Sistema de Evaluación</h1>
+                <p class="hero-subtitle">
+                    Plataforma inteligente para la priorización de factores y generación de rankings consolidados
+                </p>
+                
+                <ul class="hero-features">
+                    <li>
+                        <i class="bi bi-shield-check"></i>
+                        Sistema seguro y confiable
+                    </li>
+                    <li>
+                        <i class="bi bi-graph-up"></i>
+                        Análisis y ponderaciones avanzadas
+                    </li>
+                    <li>
+                        <i class="bi bi-people"></i>
+                        Evaluación colaborativa
+                    </li>
+                    <li>
+                        <i class="bi bi-download"></i>
+                        Exportación de resultados
+                    </li>
+                </ul>
             </div>
 
-            <div class="card-body">
-                <form action="{{ url_for('formulario_redirect') }}" method="post">
-                    <div class="mb-3">
+            <!-- Login Card -->
+            <div class="login-card slide-up">
+                <div class="card-header">
+                    <h3>Bienvenido</h3>
+                    <p class="card-subtitle">Accede al sistema de evaluación</p>
+                    <i class="bi bi-info-circle info-icon pulse" data-bs-toggle="modal" data-bs-target="#instruccionesModal"></i>
+                </div>
+
+                <form action="{{ url_for('formulario_redirect') }}" method="post" id="loginForm">
+                    <div class="form-group">
                         <label for="usuario_id" class="form-label">ID de Usuario</label>
-                        <input type="number" class="form-control" name="usuario_id" id="usuario_id" required>
-                        <div class="form-text">Ingresa tu ID de usuario para acceder al formulario asignado.</div>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            name="usuario_id" 
+                            id="usuario_id" 
+                            placeholder="Ingresa tu ID"
+                            required
+                            min="1"
+                        >
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Utiliza tu número de identificación asignado
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 mt-3">Ingresar al Formulario</button>
+                    
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span class="btn-text">Ingresar al Formulario</span>
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
                 </form>
 
-                <hr class="my-4">
-
-                <div class="text-center">
-                    <a href="{{ url_for('admin_login') }}" class="btn btn-outline-dark w-100">Ingresar como
-                        Administrador</a>
+                <div class="divider">
+                    <span>o</span>
                 </div>
+
+                <a href="{{ url_for('admin_login') }}" class="btn-outline">
+                    <i class="bi bi-gear me-2"></i>
+                    Panel de Administrador
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Instrucciones -->
-    <div class="modal fade" id="instruccionesModal" tabindex="-1" aria-labelledby="instruccionesModalLabel"
-        aria-hidden="true">
+    <!-- Modal de Instrucciones (mantener contenido original) -->
+    <div class="modal fade" id="instruccionesModal" tabindex="-1" aria-labelledby="instruccionesModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header mdl-modal-header">
+                <div class="modal-header">
                     <h5 class="modal-title" id="instruccionesModalLabel">
                         <i class="bi bi-book"></i> Instrucciones del Sistema
                     </h5>
@@ -203,8 +237,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-light mdl-modal-footer">
-                    <button type="button" class="btn btn-primary btn-lg mdl-btn-primary" data-bs-dismiss="modal">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
                         <i class="bi bi-check-lg me-2"></i>Entendido
                     </button>
                 </div>
@@ -212,14 +246,124 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <div class="login-logos">
-        <img src="{{ url_for('static', filename='img/logo_unam.png') }}" alt="Logo UNAM" style="width: 5rem; height: auto;">
+        <img src="{{ url_for('static', filename='img/logo_unam.png') }}" alt="Logo UNAM">
         <img src="{{ url_for('static', filename='img/Logo_ceide.png') }}" alt="Logo CEIDE">
         <img src="{{ url_for('static', filename='img/logo_cfop.png') }}" alt="Logo CFOP">
-        <img src="{{ url_for('static', filename='img/logo_fes.png') }}" alt="Logo FES" style="width: 4.4rem; height: auto;">
+        <img src="{{ url_for('static', filename='img/logo_fes.png') }}" alt="Logo FES">
         <img src="{{ url_for('static', filename='img/logo_planeacion.png') }}" alt="Logo Planeación">
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation and enhancement
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const userIdInput = document.getElementById('usuario_id');
+            
+            // Real-time validation
+            userIdInput.addEventListener('input', function() {
+                const value = this.value;
+                if (value && value > 0) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else if (value !== '') {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-valid', 'is-invalid');
+                }
+            });
+            
+            // Form submission with loading state
+            form.addEventListener('submit', function(e) {
+                const btnText = submitBtn.querySelector('.btn-text');
+                const btnIcon = submitBtn.querySelector('i');
+                
+                // Add loading state
+                submitBtn.disabled = true;
+                btnText.innerHTML = '<span class="loading"></span>Procesando...';
+                btnIcon.style.display = 'none';
+                
+                // Validate form
+                if (!userIdInput.value || userIdInput.value <= 0) {
+                    e.preventDefault();
+                    userIdInput.classList.add('is-invalid');
+                    
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Ingresar al Formulario';
+                    btnIcon.style.display = 'inline';
+                    
+                    // Focus on input
+                    userIdInput.focus();
+                }
+            });
+            
+            // Add floating label effect
+            userIdInput.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            userIdInput.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+            
+            // Animate elements on page load
+            setTimeout(() => {
+                document.querySelector('.hero-section').classList.add('fade-in');
+                document.querySelector('.login-card').classList.add('slide-up');
+            }, 100);
+            
+            // Auto-focus on user ID input
+            userIdInput.focus();
+            
+            // Add ripple effect to buttons
+            const buttons = document.querySelectorAll('.btn-primary, .btn-outline');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.classList.add('ripple');
+                    
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        });
+        
+        // Add smooth scrolling for better UX
+        document.documentElement.style.scrollBehavior = 'smooth';
+        
+        // Parallax effect for floating shapes (optional)
+        document.addEventListener('mousemove', function(e) {
+            const shapes = document.querySelectorAll('.shape');
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
+            
+            shapes.forEach((shape, index) => {
+                const speed = (index + 1) * 0.05;
+                const x = (mouseX - 0.5) * speed * 100;
+                const y = (mouseY - 0.5) * speed * 100;
+                
+                shape.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        });
+    </script>
+    
 </body>
 
 </html>
