@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 /* Shared styles */
 :root {
@@ -33,6 +32,12 @@ body {
   background-size: cover;
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
+}
+
+/* Force Poppins across all elements (override lingering inline or component fonts) */
+html, body, body *:not(i):not(.bi) {
+  font-family: 'Poppins', sans-serif !important;
+  font-variant-ligatures: contextual;
 }
 
 h2 {
@@ -401,7 +406,7 @@ h2::after {
    Apply by adding class="global-bg" to <body>
    ============================== */
 .global-bg {
-  font-family: 'Inter', 'Poppins', sans-serif;
+  font-family: 'Poppins', sans-serif;
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
