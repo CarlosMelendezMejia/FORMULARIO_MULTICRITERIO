@@ -171,7 +171,17 @@ INSERT INTO usuario (id, nombre, apellidos, cargo, dependencia) VALUES
 (57, 'Nombre57', 'Apellidos57', 'Cargo57', 'Dependencia57'),
 (58, 'Nombre58', 'Apellidos58', 'Cargo58', 'Dependencia58'),
 (59, 'Nombre59', 'Apellidos59', 'Cargo59', 'Dependencia59'),
-(60, 'Nombre60', 'Apellidos60', 'Cargo60', 'Dependencia60');
+(60, 'Nombre60', 'Apellidos60', 'Cargo60', 'Dependencia60'),
+(61, 'Nombre61', 'Apellidos61', 'Cargo61', 'Dependencia61'),
+(62, 'Nombre62', 'Apellidos62', 'Cargo62', 'Dependencia62'),
+(63, 'Nombre63', 'Apellidos63', 'Cargo63', 'Dependencia63'),
+(64, 'Nombre64', 'Apellidos64', 'Cargo64', 'Dependencia64'),
+(65, 'Nombre65', 'Apellidos65', 'Cargo65', 'Dependencia65'),
+(66, 'Nombre66', 'Apellidos66', 'Cargo66', 'Dependencia66'),
+(67, 'Nombre67', 'Apellidos67', 'Cargo67', 'Dependencia67'),
+(68, 'Nombre68', 'Apellidos68', 'Cargo68', 'Dependencia68'),
+(69, 'Nombre69', 'Apellidos69', 'Cargo69', 'Dependencia69'),
+(70, 'Nombre70', 'Apellidos70', 'Cargo70', 'Dependencia70');
 
 INSERT INTO asignacion (id_usuario, id_formulario) VALUES
 (1, 1),
@@ -228,4 +238,19 @@ INSERT INTO asignacion (id_usuario, id_formulario) VALUES
 (52, 52),
 (53, 53),
 (54, 54),
-(55, 55);
+(55, 55),
+(56, 56),
+(57, 57),
+(58, 58),
+(59, 59),
+(60, 60),
+(61, 61),
+(62, 62),
+(63, 63),
+(64, 64),
+(65, 65),
+(66, 66),
+(67, 67),
+(68, 68),
+(69, 69),
+(70, 70);
