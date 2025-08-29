@@ -87,14 +87,14 @@ CREATE TABLE ponderacion_admin (
 CREATE INDEX idx_ponderacion_admin_respuesta
     ON ponderacion_admin (id_respuesta);
 
--- Insertar los 55 formularios
+-- Insertar los 70 formularios
 INSERT INTO formulario (nombre)
 SELECT CONCAT('Formulario ', LPAD(n, 2, '0'))
 FROM (SELECT @row := @row + 1 AS n FROM (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
       UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
       UNION ALL SELECT 9) t1, (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
       UNION ALL SELECT 4 UNION ALL SELECT 5) t2, (SELECT @row := 0) t0) AS numeros
-WHERE n <= 55;
+WHERE n <= 70;
 
 -- Insertar los 10 factores (nombres y descripciones ejemplo)
 INSERT INTO factor (nombre, descripcion, color, dimension) VALUES
