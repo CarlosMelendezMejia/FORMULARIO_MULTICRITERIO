@@ -87,30 +87,9 @@ CREATE TABLE ponderacion_admin (
 CREATE INDEX idx_ponderacion_admin_respuesta
     ON ponderacion_admin (id_respuesta);
 
--- Insertar los 70 formularios
-INSERT INTO formulario (nombre)
-SELECT CONCAT('Formulario ', LPAD(n, 2, '0'))
-FROM (SELECT @row := @row + 1 AS n FROM (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
-      UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
-      UNION ALL SELECT 9) t1, (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
-      UNION ALL SELECT 4 UNION ALL SELECT 5) t2, (SELECT @row := 0) t0) AS numeros
-WHERE n <= 70;
+-- INSERTAR DATOS DE MANERA CORRECTA
 
--- Insertar los 10 factores (nombres y descripciones ejemplo)
-INSERT INTO factor (nombre, descripcion, color, dimension) VALUES
-('Formación académica', 'Conjunto de conocimientos, habilidades y destrezas que se adquieren en la educación formal y a través de los diversos niveles o grados de escolarización que permiten desempeñarse en un ambiente laboral específico. Incluye también la formación académica en educación u otros aspectos relacionados con la didáctica, psicología educativa o materias afines.', '#FF5733', 1),
-('Actualización en Formación y Profesionalización Docente', 'Conjunto de actividades académicas que se cursan y acreditan las cuales permiten introducir, renovar y perfeccionar el conocimiento en materia de educación universitaria que favorecen el desempeño como formador.', '#33C1FF', 1),
-('Reconocimientos y distinciones', 'Conjunto de premios, honores o menciones especiales que se han recibido en reconocimiento a la excelencia, logros o contribuciones en materia de formación docente y docencia universitaria.', '#FF33A8', 1),
-('Experiencia en la educación universitaria', 'Práctica adquirida a través del tiempo en el desempeño de una actividad profesional y académica en la educación universitaria, la cual puede determinarse en temporalidades (0-6 meses, 6 meses-1 año, 2 años, 3 años 5 o más años).', '#75FF33', 1),
-('Conocimientos y habilidades específicas', 'Conjunto de conocimientos y hablidades específicas en temas, técnicas, metodologías o habilidades para desempeñarse como formador del profesorado universitario.', '#FFC300', 1),
-('Productividad académica', 'Se refiere a las contribuciones intelectuales que ha realizado en su campo de conocimiento aplicado a la formación docente tales como: artículos científicos en revistas académicas, ponencias, proyectos de investigación, autoría o coautoría de libros o capítulos.', '#DAF7A6', 1),
-('Ethos institucional', 'Conjunto de rasgos y modos de comportamiento que conforman el carácter o la identidad de una persona o una comunidad. Para el caso del Ethos de un formador docente de la UNAM, éste estará conformado por el conocimiento de la institución (proyecto educativo), normatividad, valores y código de ética.', '#C70039', 1),
-('Actitudes', 'Predisposición cognitiva, emocional y conductual ante situaciones, personas o eventos que influye en la manera en que un individuo responde a su entorno.', '#900C3F', 1),
-('Trámites y procesos académico-administrativos', 'Compromiso y resguardo de la documentación oficial, así como el cumplimiento de los procesos de gestión que la institución determine para la certificación de actividades de formación docente.', '#581845', 2),
-('Materiales y equipos para la formación docente', 'Resguardo de los equipos de cómputo, materiales didácticos y demás insumos que le sean proporcionados para el desarrollo de actividades para la formación y profesionalización docente.', '#1C2833', 2);
-
-
-
+-- Primero insertar usuarios
 INSERT INTO usuario (id, nombre, apellidos, cargo, dependencia) VALUES
 (1, 'Nombre1', 'Apellidos1', 'Cargo1', 'Dependencia1'),
 (2, 'Nombre2', 'Apellidos2', 'Cargo2', 'Dependencia2'),
@@ -183,74 +162,48 @@ INSERT INTO usuario (id, nombre, apellidos, cargo, dependencia) VALUES
 (69, 'Nombre69', 'Apellidos69', 'Cargo69', 'Dependencia69'),
 (70, 'Nombre70', 'Apellidos70', 'Cargo70', 'Dependencia70');
 
+-- Método más directo para insertar 70 formularios
+INSERT INTO formulario (nombre) VALUES 
+('Formulario 01'), ('Formulario 02'), ('Formulario 03'), ('Formulario 04'), ('Formulario 05'),
+('Formulario 06'), ('Formulario 07'), ('Formulario 08'), ('Formulario 09'), ('Formulario 10'),
+('Formulario 11'), ('Formulario 12'), ('Formulario 13'), ('Formulario 14'), ('Formulario 15'),
+('Formulario 16'), ('Formulario 17'), ('Formulario 18'), ('Formulario 19'), ('Formulario 20'),
+('Formulario 21'), ('Formulario 22'), ('Formulario 23'), ('Formulario 24'), ('Formulario 25'),
+('Formulario 26'), ('Formulario 27'), ('Formulario 28'), ('Formulario 29'), ('Formulario 30'),
+('Formulario 31'), ('Formulario 32'), ('Formulario 33'), ('Formulario 34'), ('Formulario 35'),
+('Formulario 36'), ('Formulario 37'), ('Formulario 38'), ('Formulario 39'), ('Formulario 40'),
+('Formulario 41'), ('Formulario 42'), ('Formulario 43'), ('Formulario 44'), ('Formulario 45'),
+('Formulario 46'), ('Formulario 47'), ('Formulario 48'), ('Formulario 49'), ('Formulario 50'),
+('Formulario 51'), ('Formulario 52'), ('Formulario 53'), ('Formulario 54'), ('Formulario 55'),
+('Formulario 56'), ('Formulario 57'), ('Formulario 58'), ('Formulario 59'), ('Formulario 60'),
+('Formulario 61'), ('Formulario 62'), ('Formulario 63'), ('Formulario 64'), ('Formulario 65'),
+('Formulario 66'), ('Formulario 67'), ('Formulario 68'), ('Formulario 69'), ('Formulario 70');
+
+-- Insertar los 10 factores (nombres y descripciones ejemplo)
+INSERT INTO factor (nombre, descripcion, color, dimension) VALUES
+('Formación académica', 'Conjunto de conocimientos, habilidades y destrezas que se adquieren en la educación formal y a través de los diversos niveles o grados de escolarización que permiten desempeñarse en un ambiente laboral específico. Incluye también la formación académica en educación u otros aspectos relacionados con la didáctica, psicología educativa o materias afines.', '#FF5733', 1),
+('Actualización en Formación y Profesionalización Docente', 'Conjunto de actividades académicas que se cursan y acreditan las cuales permiten introducir, renovar y perfeccionar el conocimiento en materia de educación universitaria que favorecen el desempeño como formador.', '#33C1FF', 1),
+('Reconocimientos y distinciones', 'Conjunto de premios, honores o menciones especiales que se han recibido en reconocimiento a la excelencia, logros o contribuciones en materia de formación docente y docencia universitaria.', '#FF33A8', 1),
+('Experiencia en la educación universitaria', 'Práctica adquirida a través del tiempo en el desempeño de una actividad profesional y académica en la educación universitaria, la cual puede determinarse en temporalidades (0-6 meses, 6 meses-1 año, 2 años, 3 años 5 o más años).', '#75FF33', 1),
+('Conocimientos y habilidades específicas', 'Conjunto de conocimientos y hablidades específicas en temas, técnicas, metodologías o habilidades para desempeñarse como formador del profesorado universitario.', '#FFC300', 1),
+('Productividad académica', 'Se refiere a las contribuciones intelectuales que ha realizado en su campo de conocimiento aplicado a la formación docente tales como: artículos científicos en revistas académicas, ponencias, proyectos de investigación, autoría o coautoría de libros o capítulos.', '#DAF7A6', 1),
+('Ethos institucional', 'Conjunto de rasgos y modos de comportamiento que conforman el carácter o la identidad de una persona o una comunidad. Para el caso del Ethos de un formador docente de la UNAM, éste estará conformado por el conocimiento de la institución (proyecto educativo), normatividad, valores y código de ética.', '#C70039', 1),
+('Actitudes', 'Predisposición cognitiva, emocional y conductual ante situaciones, personas o eventos que influye en la manera en que un individuo responde a su entorno.', '#900C3F', 1),
+('Trámites y procesos académico-administrativos', 'Compromiso y resguardo de la documentación oficial, así como el cumplimiento de los procesos de gestión que la institución determine para la certificación de actividades de formación docente.', '#581845', 2),
+('Materiales y equipos para la formación docente', 'Resguardo de los equipos de cómputo, materiales didácticos y demás insumos que le sean proporcionados para el desarrollo de actividades para la formación y profesionalización docente.', '#1C2833', 2);
+
+-- Ahora sí insertar las asignaciones después de tener usuarios y formularios
 INSERT INTO asignacion (id_usuario, id_formulario) VALUES
-(1, 1),
-(2, 2),
-(3, 3),
-(4, 4),
-(5, 5),
-(6, 6),
-(7, 7),
-(8, 8),
-(9, 9),
-(10, 10),
-(11, 11),
-(12, 12),
-(13, 13),
-(14, 14),
-(15, 15),
-(16, 16),
-(17, 17),
-(18, 18),
-(19, 19),
-(20, 20),
-(21, 21),
-(22, 22),
-(23, 23),
-(24, 24),
-(25, 25),
-(26, 26),
-(27, 27),
-(28, 28),
-(29, 29),
-(30, 30),
-(31, 31),
-(32, 32),
-(33, 33),
-(34, 34),
-(35, 35),
-(36, 36),
-(37, 37),
-(38, 38),
-(39, 39),
-(40, 40),
-(41, 41),
-(42, 42),
-(43, 43),
-(44, 44),
-(45, 45),
-(46, 46),
-(47, 47),
-(48, 48),
-(49, 49),
-(50, 50),
-(51, 51),
-(52, 52),
-(53, 53),
-(54, 54),
-(55, 55),
-(56, 56),
-(57, 57),
-(58, 58),
-(59, 59),
-(60, 60),
-(61, 61),
-(62, 62),
-(63, 63),
-(64, 64),
-(65, 65),
-(66, 66),
-(67, 67),
-(68, 68),
-(69, 69),
-(70, 70);
+(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10),
+(11, 11), (12, 12), (13, 13), (14, 14), (15, 15), (16, 16), (17, 17), (18, 18), (19, 19), (20, 20),
+(21, 21), (22, 22), (23, 23), (24, 24), (25, 25), (26, 26), (27, 27), (28, 28), (29, 29), (30, 30),
+(31, 31), (32, 32), (33, 33), (34, 34), (35, 35), (36, 36), (37, 37), (38, 38), (39, 39), (40, 40),
+(41, 41), (42, 42), (43, 43), (44, 44), (45, 45), (46, 46), (47, 47), (48, 48), (49, 49), (50, 50),
+(51, 51), (52, 52), (53, 53), (54, 54), (55, 55), (56, 56), (57, 57), (58, 58), (59, 59), (60, 60),
+(61, 61), (62, 62), (63, 63), (64, 64), (65, 65), (66, 66), (67, 67), (68, 68), (69, 69), (70, 70);
+
+-- Verificar que todo se insertó correctamente
+SELECT 'Usuarios insertados:', COUNT(*) FROM usuario;
+SELECT 'Formularios insertados:', COUNT(*) FROM formulario;
+SELECT 'Factores insertados:', COUNT(*) FROM factor;
+SELECT 'Asignaciones insertadas:', COUNT(*) FROM asignacion;
