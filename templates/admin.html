@@ -121,10 +121,9 @@
                 <table class="table table-bordered table-hover">
                     <thead class="text-center">
                         <tr>
-                            <th>ID Respuesta</th>
+                            <th>Formulario</th>
                             <th>Nombre</th>
                             <th>Apellidos</th>
-                            <th>Formulario</th>
                             <th>Fecha de Respuesta</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -133,10 +132,9 @@
                     <tbody>
                         {% for r in respuestas %}
                         <tr>
-                            <td class="text-center">{{ r.id_respuesta }}</td>
+                            <td>{{ r.formulario }}</td>
                             <td>{{ r.nombre }}</td>
                             <td>{{ r.apellidos }}</td>
-                            <td>{{ r.formulario }}</td>
                             <td class="text-center">
                                 {% if r.get('fecha_respuesta') %}
                                 {{ r.fecha_respuesta_fmt }}
