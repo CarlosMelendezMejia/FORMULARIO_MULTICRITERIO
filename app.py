@@ -28,7 +28,7 @@ if not secret_key:
     raise RuntimeError("SECRET_KEY environment variable not set")
 app.secret_key = secret_key
 app.permanent_session_lifetime = timedelta(
-    minutes=int(os.getenv("SESSION_TIMEOUT_MINUTES", 5))
+    minutes=int(os.getenv("SESSION_TIMEOUT_MINUTES", 10))
 )
 
 # ==============================
