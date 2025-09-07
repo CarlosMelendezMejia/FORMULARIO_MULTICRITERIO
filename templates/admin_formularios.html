@@ -65,6 +65,13 @@
                             </td>
                             <td class="text-center">{{ f.respuestas }}</td>
                             <td class="text-center">
+                                {% if f.id_usuario %}
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editUsuarioModal-{{ f.id }}">
+                                    <i class="bi bi-pencil-square me-1"></i>Editar
+                                </button>
+                                {% else %}
+                                <span class="text-muted small me-1">Sin usuario</span>
+                                {% endif %}
                                 <form method="POST" action="{{ url_for('eliminar_formulario', id=f.id) }}" style="display:inline;">
                                     <button type="submit" class="btn btn-sm btn-danger">
                                         <i class="bi bi-trash me-1"></i>Eliminar
@@ -72,6 +79,45 @@
                                 </form>
                             </td>
                         </tr>
+                        {% if f.id_usuario %}
+                        <!-- Modal edición de usuario asignado -->
+                        <div class="modal fade admin-edit-modal" id="editUsuarioModal-{{ f.id }}" tabindex="-1" aria-labelledby="editUsuarioLabel-{{ f.id }}" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="editUsuarioLabel-{{ f.id }}">Editar usuario asignado (ID {{ f.id_usuario }})</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('editar_usuario_admin', id_usuario=f.id_usuario) }}" novalidate>
+                                        <div class="modal-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Nombre</label>
+                                                    <input type="text" name="nombre" class="form-control" value="{{ f.nombre_usuario or '' }}" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Apellidos</label>
+                                                    <input type="text" name="apellidos" class="form-control" value="{{ f.apellidos_usuario or '' }}" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Cargo</label>
+                                                    <input type="text" name="cargo" class="form-control" value="{{ f.cargo_usuario or '' }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Dependencia</label>
+                                                    <input type="text" name="dependencia" class="form-control" value="{{ f.dependencia_usuario or '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>

@@ -945,13 +945,22 @@ def administrar_formularios():
 
     g.cursor.execute(
         """
-        SELECT f.id, f.nombre, f.requiere_password, f.password_hash,
-               COUNT(r.id) AS respuestas
+        SELECT f.id,
+               f.nombre,
+               f.requiere_password,
+               f.password_hash,
+               a.id_usuario AS id_usuario,
+               u.nombre      AS nombre_usuario,
+               u.apellidos   AS apellidos_usuario,
+               u.cargo       AS cargo_usuario,
+               u.dependencia AS dependencia_usuario,
+               COUNT(r.id)   AS respuestas
         FROM formulario f
-        LEFT JOIN respuesta r
-          ON r.id_formulario = f.id
-         AND r.bloqueado = 1
-        GROUP BY f.id, f.nombre, f.requiere_password, f.password_hash
+        LEFT JOIN asignacion a ON a.id_formulario = f.id
+        LEFT JOIN usuario u    ON u.id = a.id_usuario
+        LEFT JOIN respuesta r  ON r.id_formulario = f.id AND r.bloqueado = 1
+        GROUP BY f.id, f.nombre, f.requiere_password, f.password_hash,
+                 a.id_usuario, u.nombre, u.apellidos, u.cargo, u.dependencia
         ORDER BY f.id
         """
     )
@@ -963,6 +972,38 @@ def administrar_formularios():
         formularios=formularios,
         default_name=default_name,
     )
+
+
+@app.route("/admin/usuarios/<int:id_usuario>/editar", methods=["POST"])
+def editar_usuario_admin(id_usuario: int):
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+
+    get_db()
+    nombre = sanitize(request.form.get("nombre", "").strip())
+    apellidos = sanitize(request.form.get("apellidos", "").strip())
+    cargo = sanitize(request.form.get("cargo", "").strip())
+    dependencia = sanitize(request.form.get("dependencia", "").strip())
+
+    if not nombre or not apellidos:
+        flash("Nombre y apellidos son obligatorios.")
+        return redirect(url_for("administrar_formularios"))
+
+    g.cursor.execute(
+        "UPDATE usuario SET nombre=%s, apellidos=%s, cargo=%s, dependencia=%s WHERE id=%s",
+        (nombre, apellidos, cargo or None, dependencia or None, id_usuario),
+    )
+    g.conn.commit()
+    app.logger.info(
+        "Usuario %s actualizado por admin: %s %s, cargo=%s, dependencia=%s",
+        id_usuario,
+        nombre,
+        apellidos,
+        cargo,
+        dependencia,
+    )
+    flash("Datos del usuario actualizados correctamente.")
+    return redirect(url_for("administrar_formularios"))
 
 
 @app.route("/admin/formularios/eliminar/<int:id>", methods=["POST"])

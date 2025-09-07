@@ -34,6 +34,34 @@ body {
   font-family: 'Poppins', sans-serif;
 }
 
+/* Variables glass (fallback if not defined earlier) */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+/* Admin edit modal overrides (avoid unintended transparency from other contexts) */
+.admin-edit-modal .modal-content {
+  background: #ffffffee;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 22px -4px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.03);
+}
+
+.admin-edit-modal .modal-header {
+  background: linear-gradient(135deg, var(--color-acento) 0%, var(--color-primario-medio) 100%);
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
+}
+
+.admin-edit-modal .modal-title {font-weight:600;}
+.admin-edit-modal .btn-close {filter: invert(1); opacity:.85;}
+.admin-edit-modal .btn-close:hover {opacity:1;}
+.admin-edit-modal .modal-footer {background:#f8fafc; border-top:1px solid #e2e8f0;}
+
+
 /* Force Poppins across all elements (override lingering inline or component fonts) */
 html,
 body,
