@@ -857,10 +857,12 @@ def export_respuestas_csv():
         ])
     csv_data = output.getvalue()
     output.close()
+    # Asegurar BOM UTF-8 para compatibilidad (p.ej., Excel)
+    csv_data = "\ufeff" + csv_data
     filename = "respuestas_export.csv"
     return Response(
         csv_data,
-        mimetype="text/csv",
+        content_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
@@ -1446,9 +1448,11 @@ def export_ranking_csv():
         writer.writerow([idx, r.get("nombre"), r.get("total"), r.get("color")])
     csv_data = output.getvalue()
     output.close()
+    # Asegurar BOM UTF-8 para compatibilidad (p.ej., Excel)
+    csv_data = "\ufeff" + csv_data
     return Response(
         csv_data,
-        mimetype="text/csv",
+        content_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": "attachment; filename=ranking_factores.csv"},
     )
 
