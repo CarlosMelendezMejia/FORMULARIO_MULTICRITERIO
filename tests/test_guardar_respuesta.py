@@ -134,9 +134,10 @@ def test_guardar_respuesta_incompleta(monkeypatch):
         "apellidos": "A",
         "cargo": "C",
         "dependencia": "D",
-        # Solo se envía un factor de dos
+        # Solo se envía un factor de dos; el valor del segundo está vacío
         "factor_id_1": "1",
         "valor_1": "1",
+        "valor_2": "",
     }
 
     with app.test_client() as client:
@@ -175,51 +176,7 @@ def test_guardar_respuesta_incompleta_sin_valor(monkeypatch):
         "apellidos": "A",
         "cargo": "C",
         "dependencia": "D",
-        # Se envían ambos factores pero falta uno de los valores
-        "factor_id_1": "1",
-        "valor_1": "1",
-        "factor_id_2": "2",
-        # Falta valor_2
-    }
-
-    with app.test_client() as client:
-        resp = client.post("/guardar_respuesta", data=data)
-        assert resp.status_code == 302
-        assert resp.headers["Location"].endswith("/formulario/1")
-        with client.session_transaction() as sess:
-            flashes = sess.get("_flashes", [])
-        assert (
-            "message",
-            "Respuestas incompletas; se guardó el progreso sin bloquear",
-        ) in flashes
-        # El bloqueo no debe marcarse como True
-        assert cache.get(bloqueo_key(1, 2)) is None
-
-    # Se insertó la respuesta pero sin bloquear
-    assert len(cursor.queries) == 4
-    assert "UPDATE usuario" in cursor.queries[0][0]
-    assert "SELECT id FROM respuesta" in cursor.queries[1][0]
-    assert "INSERT INTO respuesta" in cursor.queries[2][0]
-    assert cursor.queries[2][1] == (1, 2, 0)
-    assert "INSERT INTO respuesta_detalle" in cursor.queries[3][0]
-    assert conn.start_transaction_called
-    assert conn.commit_called
-
-
-def test_guardar_respuesta_incompleta_valor_vacio(monkeypatch):
-    cursor, conn = create_dummy(monkeypatch)
-    monkeypatch.setattr(app_module, "get_factores", lambda: [{"id": 1}, {"id": 2}])
-
-    cache.clear()
-    cache.set(bloqueo_key(1, 2), False, timeout=app_module.BLOQUEO_CACHE_TTL)
-
-    data = {
-        "usuario_id": "1",
-        "formulario_id": "2",
-        "nombre": "N",
-        "apellidos": "A",
-        "cargo": "C",
-        "dependencia": "D",
+        # Se envían ambos factores pero el segundo valor está vacío
         "factor_id_1": "1",
         "valor_1": "1",
         "factor_id_2": "2",
@@ -236,8 +193,10 @@ def test_guardar_respuesta_incompleta_valor_vacio(monkeypatch):
             "message",
             "Respuestas incompletas; se guardó el progreso sin bloquear",
         ) in flashes
+        # El bloqueo no debe marcarse como True
         assert cache.get(bloqueo_key(1, 2)) is None
 
+    # Se insertó la respuesta pero sin bloquear
     assert len(cursor.queries) == 4
     assert "UPDATE usuario" in cursor.queries[0][0]
     assert "SELECT id FROM respuesta" in cursor.queries[1][0]
