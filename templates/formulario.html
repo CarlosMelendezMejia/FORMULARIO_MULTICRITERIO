@@ -84,6 +84,9 @@
                         importancia</strong> y <strong>1 el de menor relevancia</strong>.
                     <br>Nota: Cada número debe ser único. No se pueden repetir valores.
                 </div>
+                <div class="alert alert-info mt-3">
+                    Los valores no asignados mantendrán abierto el formulario hasta completar todos los factores.
+                </div>
 
                 <div id="tabla-dimensiones" class="mb-4">
                     <h5 class="mb-2">Simbología de Dimensiones</h5>
@@ -110,7 +113,7 @@
                                 </td>
                                 <td>{{ factor.descripcion }}</td>
                                 <td class="text-center">
-                                    <select name="valor_{{ loop.index }}" class="form-select valor-factor" required>
+                                    <select name="valor_{{ loop.index }}" class="form-select valor-factor">
                                         <option value="">Seleccione</option>
                                         {% for num in range(1, num_factores + 1) %}
                                         <option value="{{ num }}" {% if respuestas_previas[factor.id]|default('')==num %}selected{% endif %}>
