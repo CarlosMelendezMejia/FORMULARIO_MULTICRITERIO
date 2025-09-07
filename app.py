@@ -515,15 +515,14 @@ def guardar_respuesta():
     cargo = sanitize(request.form["cargo"].strip())
     dependencia = sanitize(request.form["dependencia"].strip())
 
-    # 1. Leer los valores únicos de los factores
+    # 1. Leer los valores únicos de los factores enviados
     valores = []
     try:
         for i in range(1, num_factores + 1):
             factor_key = f"factor_id_{i}"
             valor_key = f"valor_{i}"
             if factor_key not in request.form or valor_key not in request.form:
-                flash(f"Faltan datos para el factor {i}.")
-                return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
+                continue  # Datos faltantes → se considera incompleto
             factor_id = int(request.form[factor_key])
             valor = int(request.form[valor_key])
             if not 1 <= valor <= num_factores:
@@ -540,10 +539,15 @@ def guardar_respuesta():
         id_formulario,
         valores,
     )
+
     usados = [v[1] for v in valores]
-    if len(set(usados)) != num_factores:
-        flash(f"Cada valor del 1 al {num_factores} debe ser único. No se permiten duplicados.")
+    if len(usados) != len(set(usados)):
+        flash(
+            f"Cada valor del 1 al {num_factores} debe ser único. No se permiten duplicados."
+        )
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
+
+    completo = len(valores) == num_factores
 
     # 2. Guardar información en la base de datos dentro de una transacción
     try:
@@ -596,19 +600,20 @@ def guardar_respuesta():
             INSERT INTO respuesta (id_usuario, id_formulario, bloqueado)
             VALUES (%s, %s, %s)
         """,
-            (id_usuario, id_formulario, 1),
+            (id_usuario, id_formulario, 1 if completo else 0),
         )
         id_respuesta = g.cursor.lastrowid
 
         # Insertar detalle de factores
         detalles = [(id_respuesta, factor_id, valor) for factor_id, valor in valores]
-        g.cursor.executemany(
-            """
-                INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
-                VALUES (%s, %s, %s)
-            """,
-            detalles,
-        )
+        if detalles:
+            g.cursor.executemany(
+                """
+                    INSERT INTO respuesta_detalle (id_respuesta, id_factor, valor_usuario)
+                    VALUES (%s, %s, %s)
+                """,
+                detalles,
+            )
 
         g.conn.commit()
     except mysql.connector.IntegrityError:
@@ -633,6 +638,18 @@ def guardar_respuesta():
     # Limpiar cachés dependientes
     invalidate_bloqueo_cache(id_usuario, id_formulario)
     invalidate_ranking_cache()
+
+    if not completo:
+        flash("Respuestas incompletas; se guardó el progreso sin bloquear")
+        app.logger.info(
+            "Respuesta incompleta usuario=%s formulario=%s",
+            id_usuario,
+            id_formulario,
+        )
+        if exit_redirect:
+            return redirect(url_for("index"))
+        return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
+
     if exit_redirect:
         app.logger.info(
             "Respuesta guardada usuario=%s formulario=%s con redireccion",
