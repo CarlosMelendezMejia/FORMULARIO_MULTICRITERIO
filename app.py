@@ -640,14 +640,14 @@ def guardar_respuesta():
     invalidate_ranking_cache()
 
     if not completo:
-        flash("Respuestas incompletas; se guardó el progreso sin bloquear")
         app.logger.info(
             "Respuesta incompleta usuario=%s formulario=%s",
             id_usuario,
             id_formulario,
         )
         if exit_redirect:
-            return redirect(url_for("index"))
+            return render_template("confirmacion.html", bloqueado=False)
+        flash("Respuestas incompletas; se guardó el progreso sin bloquear")
         return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
 
     if exit_redirect:
@@ -656,13 +656,13 @@ def guardar_respuesta():
             id_usuario,
             id_formulario,
         )
-        return redirect(url_for("index"))
-    app.logger.info(
-        "Respuesta guardada usuario=%s formulario=%s",
-        id_usuario,
-        id_formulario,
-    )
-    return render_template("confirmacion.html")
+    else:
+        app.logger.info(
+            "Respuesta guardada usuario=%s formulario=%s",
+            id_usuario,
+            id_formulario,
+        )
+    return render_template("confirmacion.html", bloqueado=True)
 
 
 @app.route("/admin/login", methods=["GET", "POST"])
