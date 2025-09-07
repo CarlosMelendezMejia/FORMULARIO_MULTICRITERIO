@@ -61,6 +61,52 @@ body {
 .admin-edit-modal .btn-close:hover {opacity:1;}
 .admin-edit-modal .modal-footer {background:#f8fafc; border-top:1px solid #e2e8f0;}
 
+/* Highlight of updated row after password save */
+.row-highlight {
+  animation: pulseRow 2.2s ease-in-out;
+  position: relative;
+}
+@keyframes pulseRow {
+  0% { box-shadow: 0 0 0 0 rgba(20,35,131,0.6); background: #fffef3; }
+  40% { box-shadow: 0 0 0 6px rgba(20,35,131,0.0); background: #f1f8ff; }
+  70% { box-shadow: 0 0 0 0 rgba(20,35,131,0.0); }
+  100% { box-shadow: none; background: inherit; }
+}
+
+/* Larger inputs inside admin edit modal for long content */
+.admin-edit-modal .form-control-lg {
+  font-size: 1rem;
+  padding: .85rem 1rem;
+}
+
+.admin-edit-modal textarea.form-control-lg {
+  resize: vertical;
+  min-height: 80px;
+  max-height: 220px;
+  line-height:1.35;
+}
+
+.admin-edit-modal .modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.admin-edit-modal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.admin-edit-modal .modal-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.admin-edit-modal .modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.admin-edit-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 
 /* Force Poppins across all elements (override lingering inline or component fonts) */
 html,
