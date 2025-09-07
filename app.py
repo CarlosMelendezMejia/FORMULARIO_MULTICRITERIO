@@ -521,10 +521,13 @@ def guardar_respuesta():
         for i in range(1, num_factores + 1):
             factor_key = f"factor_id_{i}"
             valor_key = f"valor_{i}"
-            if factor_key not in request.form or valor_key not in request.form:
+            if factor_key not in request.form:
                 continue  # Datos faltantes → se considera incompleto
+            raw_val = request.form.get(valor_key, "").strip()
+            if not raw_val:
+                continue  # Valor faltante → se considera incompleto
             factor_id = int(request.form[factor_key])
-            valor = int(request.form[valor_key])
+            valor = int(raw_val)
             if not 1 <= valor <= num_factores:
                 flash(f"Cada valor debe estar entre 1 y {num_factores}.")
                 return redirect(url_for("mostrar_formulario", id_usuario=id_usuario))
