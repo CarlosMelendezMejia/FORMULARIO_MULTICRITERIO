@@ -21,7 +21,7 @@
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
                     <thead class="text-center">
-                        <tr id="form-row-{{ f.id }}" data-form-id="{{ f.id }}">
+                        <tr>
                             <th>ID</th>
                             <th>Nombre</th>
                             <th>Protección</th>
@@ -32,7 +32,7 @@
                     </thead>
                     <tbody>
                         {% for f in formularios %}
-                        <tr>
+                        <tr id="form-row-{{ f.id }}" data-form-id="{{ f.id }}">
                             <td class="text-center">{{ f.id }}</td>
                             <td>{{ f.nombre }}</td>
                             <td>
