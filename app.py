@@ -11,6 +11,7 @@ import io
 import csv
 from pathlib import Path
 from concurrent_log_handler import ConcurrentRotatingFileHandler
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -26,6 +27,9 @@ secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
     raise RuntimeError("SECRET_KEY environment variable not set")
 app.secret_key = secret_key
+app.permanent_session_lifetime = timedelta(
+    minutes=int(os.getenv("SESSION_TIMEOUT_MINUTES", 5))
+)
 
 # ==============================
 # Prefijo de aplicación opcional
@@ -118,6 +122,29 @@ except Exception as e:  # pragma: no cover - fallback for missing redis
     )
 
 RANKING_CACHE_KEY = "ranking_cache"
+
+
+@app.before_request
+def enforce_admin_session_timeout():
+    prefixed_admin = f"{APP_PREFIX}/admin"
+    path = request.path
+    if not path.startswith(prefixed_admin):
+        return
+    if request.endpoint == "admin_login":
+        return
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+    last = session.get("last_activity")
+    if last:
+        try:
+            last_dt = datetime.fromtimestamp(float(last))
+        except (TypeError, ValueError):
+            last_dt = None
+        if last_dt and datetime.utcnow() - last_dt > app.permanent_session_lifetime:
+            session.pop("is_admin", None)
+            session.pop("last_activity", None)
+            return redirect(url_for("admin_login"))
+    session["last_activity"] = datetime.utcnow().timestamp()
 
 
 # =====================================
@@ -675,7 +702,9 @@ def admin_login():
         ip = request.remote_addr
         app.logger.info("Intento login admin ip=%s", ip)
         if password == ADMIN_PASSWORD:
+            session.permanent = True
             session["is_admin"] = True
+            session["last_activity"] = datetime.utcnow().timestamp()
             app.logger.info("Login admin exitoso ip=%s", ip)
             return redirect(url_for("panel_admin"))
         app.logger.info("Login admin fallido ip=%s", ip)
@@ -688,6 +717,7 @@ def admin_logout():
     ip = request.remote_addr
     app.logger.info("Logout admin ip=%s", ip)
     session.pop("is_admin", None)
+    session.pop("last_activity", None)
     return redirect(url_for("index"))
 
 
