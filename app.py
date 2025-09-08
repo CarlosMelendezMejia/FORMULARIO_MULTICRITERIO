@@ -1144,44 +1144,41 @@ def reiniciar_formularios():
     return redirect(url_for("administrar_formularios"))
 
 
-@app.route("/admin/ponderacion_universal", methods=["GET", "POST"])
+@app.route("/admin/ponderacion_universal", methods=["POST"])
 def ponderacion_universal():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
 
-    if request.method == "POST":
-        valor_str = request.form.get("valor")
-        try:
-            valor = Decimal(valor_str)
-        except (InvalidOperation, TypeError):
-            flash("El valor debe ser numérico.")
-            return redirect(url_for("ponderacion_universal"))
-        if not (Decimal("0") <= valor <= Decimal("10")):
-            flash("El valor debe estar entre 0 y 10.")
-            return redirect(url_for("ponderacion_universal"))
-
-        get_db()
-        g.cursor.execute("SELECT id FROM respuesta")
-        ids_respuesta = [row["id"] for row in g.cursor.fetchall()]
-        factores = get_factores()
-
-        g.cursor.execute("DELETE FROM ponderacion_admin")
-        valores = [
-            (id_resp, f["id"], valor)
-            for id_resp in ids_respuesta
-            for f in factores
-        ]
-        if valores:
-            g.cursor.executemany(
-                "INSERT INTO ponderacion_admin (id_respuesta, id_factor, peso_admin) VALUES (%s, %s, %s)",
-                valores,
-            )
-        g.conn.commit()
-        invalidate_ranking_cache()
-        flash("Ponderación universal aplicada correctamente.")
+    valor_str = request.form.get("valor")
+    try:
+        valor = Decimal(valor_str)
+    except (InvalidOperation, TypeError):
+        flash("El valor debe ser numérico.")
+        return redirect(url_for("panel_admin"))
+    if not (Decimal("0") <= valor <= Decimal("10")):
+        flash("El valor debe estar entre 0 y 10.")
         return redirect(url_for("panel_admin"))
 
-    return render_template("admin_ponderacion_universal.html")
+    get_db()
+    g.cursor.execute("SELECT id FROM respuesta")
+    ids_respuesta = [row["id"] for row in g.cursor.fetchall()]
+    factores = get_factores()
+
+    g.cursor.execute("DELETE FROM ponderacion_admin")
+    valores = [
+        (id_resp, f["id"], valor)
+        for id_resp in ids_respuesta
+        for f in factores
+    ]
+    if valores:
+        g.cursor.executemany(
+            "INSERT INTO ponderacion_admin (id_respuesta, id_factor, peso_admin) VALUES (%s, %s, %s)",
+            valores,
+        )
+    g.conn.commit()
+    invalidate_ranking_cache()
+    flash("Ponderación universal aplicada correctamente.")
+    return redirect(url_for("panel_admin"))
 
 
 @app.route("/admin/formularios/abrir/<int:id_respuesta>", methods=["POST"])

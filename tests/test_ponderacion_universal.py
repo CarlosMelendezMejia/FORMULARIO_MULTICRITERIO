@@ -60,14 +60,23 @@ def create_dummy(monkeypatch, fetchone_results=None, fetchall_results=None):
     return cursor, conn
 
 
-def test_get_ponderacion_universal():
+def test_modal_in_admin(monkeypatch):
+    create_dummy(monkeypatch, fetchone_results=[{'total': 0, 'bloqueados': 0, 'abiertos': 0}], fetchall_results=[[]])
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess['is_admin'] = True
+        resp = client.get('/admin')
+        assert resp.status_code == 200
+        assert b'id="ponderacionUniversalModal"' in resp.data
+        assert b'name="valor"' in resp.data
+
+
+def test_ponderacion_universal_get_not_allowed():
     with app.test_client() as client:
         with client.session_transaction() as sess:
             sess['is_admin'] = True
         resp = client.get('/admin/ponderacion_universal')
-        assert resp.status_code == 200
-        assert b'Ponderaci' in resp.data
-        assert b'name="valor"' in resp.data
+        assert resp.status_code == 405
 
 
 def test_post_ponderacion_universal_valido(monkeypatch):
@@ -135,7 +144,7 @@ def test_post_ponderacion_universal_invalido():
             sess['is_admin'] = True
         resp = client.post('/admin/ponderacion_universal', data={'valor': '11'})
         assert resp.status_code == 302
-        assert resp.headers['Location'].endswith('/admin/ponderacion_universal')
+        assert resp.headers['Location'].endswith('/admin')
         flashes = _get_flashes(client)
         assert any('entre 0 y 10' in msg for _, msg in flashes)
         resp2 = client.post('/admin/ponderacion_universal', data={'valor': 'abc'})
