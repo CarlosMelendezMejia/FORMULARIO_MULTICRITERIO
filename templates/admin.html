@@ -64,6 +64,9 @@
                         href="{{ url_for('export_respuestas_csv', estado=estado, search=search, formulario=formulario_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">
                         <i class="bi bi-download me-1"></i>Descargar CSV
                     </a>
+                    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('ponderacion_universal') }}">
+                        <i class="bi bi-sliders me-1"></i>Ponderación Universal
+                    </a>
                     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel_admin', clear=1) }}">
                         <i class="bi bi-x-circle me-1"></i>Reset Filtros
                     </a>
