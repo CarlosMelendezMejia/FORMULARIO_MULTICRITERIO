@@ -867,44 +867,54 @@ def export_respuestas_csv():
     where_clause, params, _, _ = build_admin_filters(
         estado, search, formulario_filter, fecha_desde, fecha_hasta
     )
+
+    factores = get_factores()
+    factor_selects = []
+    for idx, f in enumerate(factores, start=1):
+        factor_selects.append(
+            f"MAX(CASE WHEN rd.id_factor = {f['id']} THEN rd.valor_usuario END) AS factor_{idx}"
+        )
+
+    select_columns = [
+        "f.nombre AS formulario",
+        "u.nombre",
+        "u.apellidos",
+        "u.dependencia",
+        "u.cargo",
+        *factor_selects,
+    ]
+
     export_sql = f"""
-        SELECT r.id AS id_respuesta,
-               u.nombre,
-               u.apellidos,
-               f.id AS id_formulario,
-               f.nombre AS formulario,
-               r.fecha_respuesta,
-               DATE_FORMAT(r.fecha_respuesta, '%Y-%m-%d %H:%i:%s') AS fecha_respuesta_fmt,
-               r.bloqueado
+        SELECT {', '.join(select_columns)}
         FROM respuesta r
         JOIN usuario u ON r.id_usuario = u.id
         JOIN formulario f ON r.id_formulario = f.id
+        LEFT JOIN respuesta_detalle rd ON rd.id_respuesta = r.id
         WHERE {where_clause}
+        GROUP BY r.id, u.nombre, u.apellidos, u.dependencia, u.cargo, f.nombre
         ORDER BY r.fecha_respuesta DESC, r.id DESC
     """
     g.cursor.execute(export_sql, tuple(params))
     rows = g.cursor.fetchall()
+
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow([
-        "id_respuesta",
-        "nombre",
-        "apellidos",
-        "id_formulario",
-        "formulario",
-        "fecha_respuesta",
-        "bloqueado",
-    ])
+    header = ["formulario", "nombre", "apellidos", "dependencia", "cargo"]
+    header.extend([f"factor_{i}" for i in range(1, len(factores) + 1)])
+    writer.writerow(header)
+
     for r in rows:
-        writer.writerow([
-            r["id_respuesta"],
+        row = [
+            r["formulario"],
             r["nombre"],
             r["apellidos"],
-            r["id_formulario"],
-            r["formulario"],
-            r["fecha_respuesta_fmt"],
-            1 if r["bloqueado"] else 0,
+            r.get("dependencia") or "",
+            r.get("cargo") or "",
+        ]
+        row.extend([
+            r.get(f"factor_{i}") or "" for i in range(1, len(factores) + 1)
         ])
+        writer.writerow(row)
     csv_data = output.getvalue()
     output.close()
     # Asegurar BOM UTF-8 para compatibilidad (p.ej., Excel)
