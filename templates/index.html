@@ -12,7 +12,7 @@
 </head>
 
 <body class="global-bg index-page">
-    
+
 
     <div class="main-container">
         <div class="login-wrapper">
@@ -23,12 +23,12 @@
                     <div class="shape"></div>
                     <div class="shape"></div>
                 </div>
-                
+
                 <h1 class="hero-title">Sistema de Ponderación</h1>
                 <p class="hero-subtitle">
                     Perfil del Formador de Docentes de la UNAM
                 </p>
-                
+
                 <ul class="hero-features">
                     <li>
                         <i class="bi bi-shield-check"></i>
@@ -54,26 +54,20 @@
                 <div class="card-header">
                     <h3>Bienvenidas y Bienvenidos</h3>
                     <p class="card-subtitle">Acceder al sistema</p>
-                    <i class="bi bi-info-circle info-icon pulse" data-bs-toggle="modal" data-bs-target="#instruccionesModal"></i>
+                    <i class="bi bi-info-circle info-icon pulse" data-bs-toggle="modal"
+                        data-bs-target="#instruccionesModal"></i>
                 </div>
 
                 <form action="{{ url_for('formulario_redirect') }}" method="post" id="loginForm">
                     <div class="form-group">
                         <label for="usuario_id" class="form-label">ID de Usuario</label>
-                        <input 
-                            type="number" 
-                            class="form-control" 
-                            name="usuario_id" 
-                            id="usuario_id" 
-                            placeholder="Ingrese su ID"
-                            required
-                            min="1"
-                        >
+                        <input type="number" class="form-control" name="usuario_id" id="usuario_id"
+                            placeholder="Ingrese su ID" required min="1">
                         <div class="form-text">
                             Utiliza tu número de identificación asignado
                         </div>
                     </div>
-                    
+
                     <button type="submit" class="btn-primary" id="submitBtn">
                         <span class="btn-text">Ingresar al Formulario</span>
                         <i class="bi bi-arrow-right ms-2"></i>
@@ -93,15 +87,18 @@
     </div>
 
     <div class="login-logos">
-        <img src="{{ url_for('static', filename='img/logo_unam.png') }}" alt="Logo UNAM" style="width: 5rem; height: auto;">
+        <img src="{{ url_for('static', filename='img/logo_unam.png') }}" alt="Logo UNAM"
+            style="width: 5rem; height: auto;">
         <img src="{{ url_for('static', filename='img/Logo_ceide.png') }}" alt="Logo CEIDE">
         <img src="{{ url_for('static', filename='img/logo_cfop.png') }}" alt="Logo CFOP">
-        <img src="{{ url_for('static', filename='img/logo_fes.png') }}" alt="Logo FES" style="width: 4.4rem; height: auto;">
+        <img src="{{ url_for('static', filename='img/logo_fes.png') }}" alt="Logo FES"
+            style="width: 4.4rem; height: auto;">
         <img src="{{ url_for('static', filename='img/logo_planeacion.png') }}" alt="Logo Planeación">
     </div>
 
     <!-- Modal de Instrucciones (mantener contenido original) -->
-    <div class="modal fade" id="instruccionesModal" tabindex="-1" aria-labelledby="instruccionesModalLabel" aria-hidden="true">
+    <div class="modal fade" id="instruccionesModal" tabindex="-1" aria-labelledby="instruccionesModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
@@ -115,10 +112,10 @@
                         <div class="col-12">
                             <div class="alert alert-info mdl-alert-info" role="alert">
                                 <i class="bi bi-info-circle-fill me-2"></i>
-                                <strong>Descripción General:</strong> Este sistema permite priorizar factores mediante la asignación de valores únicos. Cada usuario
-                                recibe un formulario (posiblemente protegido con contraseña) y asigna una jerarquía
-                                de importancia a los factores disponibles. El administrador posteriormente pondera y genera un
-                                ranking global.
+                                <strong>Descripción General:</strong> Este sistema le permitirá jerarquizar los factores
+                                que integran el Perfil del Formador de Docentes mediante la asignación de valores
+                                únicos. Cada persona Enlace accederá con usuario y contraseña, previamente enviados por
+                                el CFOP.
                             </div>
                         </div>
                     </div>
@@ -135,9 +132,13 @@
                                 <div class="mdl-list-group-item">
                                     <div class="d-flex align-items-start">
                                         <div>
-                                            <strong><i class="bi bi-key mdl-icon-large text-primary"></i>Acceso al Formulario</strong>
-                                            <p class="mb-0 mt-2">Ingresa tu <strong>ID de Usuario</strong> y haz clic en <em>Ingresar al Formulario</em>.
-                                            Si el formulario está protegido aparecerá una pantalla para introducir la contraseña; ésta se pedirá cada vez que abras el formulario.</p>
+                                            <strong><i class="bi bi-key mdl-icon-large text-primary"></i>Acceso al
+                                                Formulario</strong>
+                                            <p class="mb-0 mt-2">Ingresar con su ID de usuario y la contraseña, haga
+                                                clic
+                                                en Ingresar al Formulario. Posteriormente, el sistema le solicitará
+                                                introducir la contraseña en el recuadro "Protección de formulario".
+                                                Finalmente haga clic en el botón Acceder.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -145,8 +146,13 @@
                                 <div class="mdl-list-group-item">
                                     <div class="d-flex align-items-start">
                                         <div>
-                                            <strong><i class="bi bi-person-vcard mdl-icon-large text-success"></i>Verificación de Datos</strong>
-                                            <p class="mb-0 mt-2">Verifica tus datos personales mostrados (nombre, apellidos, cargo, dependencia). Si falta algo complétalo.</p>
+                                            <strong><i
+                                                    class="bi bi-person-vcard mdl-icon-large text-success"></i>Verificación
+                                                de Datos</strong>
+                                            <p class="mb-0 mt-2">Verificar los datos personales que muestra el sistema
+                                                (nombre, apellidos, cargo, entidad o dependencia). Si alguno faltara o
+                                                estuviera incorrecto, es necesario completar la información o en su
+                                                caso, modificarla.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -154,8 +160,12 @@
                                 <div class="mdl-list-group-item">
                                     <div class="d-flex align-items-start">
                                         <div>
-                                            <strong><i class="bi bi-list-ol mdl-icon-large text-warning"></i>Asignación de Prioridades</strong>
-                                            <p class="mb-0 mt-2">Asigna a cada factor un número único (sin repetir) dentro del rango permitido. El valor representa su prioridad relativa.</p>
+                                            <strong><i class="bi bi-list-ol mdl-icon-large text-warning"></i>Asignación
+                                                de Prioridades</strong>
+                                            <p class="mb-0 mt-2">Asignar a cada factor un número único dentro del rango
+                                                de 1 a 10 permitido. El valor representa su prioridad. El sistema no le
+                                                permitirá repetir un número ya asignado.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -163,8 +173,10 @@
                                 <div class="mdl-list-group-item">
                                     <div class="d-flex align-items-start">
                                         <div>
-                                            <strong><i class="bi bi-table mdl-icon-large text-info"></i>Revisión de Simbología</strong>
-                                            <p class="mb-0 mt-2">Revisa la tabla de simbología para entender la dimensión de cada factor.</p>
+                                            <strong><i class="bi bi-table mdl-icon-large text-info"></i>Revisión de
+                                                Simbología</strong>
+                                            <p class="mb-0 mt-2">Revisar la tabla de simbología para entender la
+                                                dimensión de cada factor.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -172,8 +184,12 @@
                                 <div class="mdl-list-group-item">
                                     <div class="d-flex align-items-start">
                                         <div>
-                                            <strong><i class="bi bi-floppy mdl-icon-large text-success"></i>Guardar Respuestas</strong>
-                                            <p class="mb-0 mt-2">Haz clic en <strong>Guardar Respuestas</strong>. Confirma en el cuadro de diálogo. El sistema bloqueará tu respuesta (ya no podrás editarla a menos que un administrador la reabra).</p>
+                                            <strong><i class="bi bi-floppy mdl-icon-large text-success"></i>Guardar
+                                                Respuestas</strong>
+                                            <p class="mb-0 mt-2">Hacer clic en <strong>Guardar Respuestas</strong>.
+                                                Confirme en el cuadro de diálogo. El sistema bloqueará su respuesta y ya
+                                                no podrá editarla a menos que lo solicite al CFOP vía correo
+                                                electrónico.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -181,8 +197,10 @@
                                 <div class="mdl-list-group-item">
                                     <div class="d-flex align-items-start">
                                         <div>
-                                            <strong><i class="bi bi-check-circle mdl-icon-large text-success"></i>Confirmación</strong>
-                                            <p class="mb-0 mt-2">Observa la pantalla de confirmación y, si lo deseas, regresa al inicio.</p>
+                                            <strong><i
+                                                    class="bi bi-check-circle mdl-icon-large text-success"></i>Confirmación</strong>
+                                            <p class="mb-0 mt-2">Observar la pantalla de confirmación y, si lo desea,
+                                                regrese al inicio.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -229,128 +247,128 @@
                         </div>
                     </div>
                     -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                        <i class="bi bi-check-lg me-2"></i>Entendido
-                    </button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                            <i class="bi bi-check-lg me-2"></i>Entendido
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Logos institucionales -->
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Form validation and enhancement
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('loginForm');
-            const submitBtn = document.getElementById('submitBtn');
-            const userIdInput = document.getElementById('usuario_id');
-            
-            // Real-time validation
-            userIdInput.addEventListener('input', function() {
-                const value = this.value;
-                if (value && value > 0) {
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
-                } else if (value !== '') {
-                    this.classList.remove('is-valid');
-                    this.classList.add('is-invalid');
-                } else {
-                    this.classList.remove('is-valid', 'is-invalid');
-                }
-            });
-            
-            // Form submission with loading state
-            form.addEventListener('submit', function(e) {
-                const btnText = submitBtn.querySelector('.btn-text');
-                const btnIcon = submitBtn.querySelector('i');
-                
-                // Add loading state
-                submitBtn.disabled = true;
-                btnText.innerHTML = '<span class="loading"></span>Procesando...';
-                btnIcon.style.display = 'none';
-                
-                // Validate form
-                if (!userIdInput.value || userIdInput.value <= 0) {
-                    e.preventDefault();
-                    userIdInput.classList.add('is-invalid');
-                    
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    btnText.textContent = 'Ingresar al Formulario';
-                    btnIcon.style.display = 'inline';
-                    
-                    // Focus on input
-                    userIdInput.focus();
-                }
-            });
-            
-            // Add floating label effect
-            userIdInput.addEventListener('focus', function() {
-                this.parentElement.classList.add('focused');
-            });
-            
-            userIdInput.addEventListener('blur', function() {
-                if (!this.value) {
-                    this.parentElement.classList.remove('focused');
-                }
-            });
-            
-            // Animate elements on page load
-            setTimeout(() => {
-                document.querySelector('.hero-section').classList.add('fade-in');
-                document.querySelector('.login-card').classList.add('slide-up');
-            }, 100);
-            
-            // Auto-focus on user ID input
-            userIdInput.focus();
-            
-            // Add ripple effect to buttons
-            const buttons = document.querySelectorAll('.btn-primary, .btn-outline');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.width = ripple.style.height = size + 'px';
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
-                    ripple.classList.add('ripple');
-                    
-                    this.appendChild(ripple);
-                    
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
+        <!-- Logos institucionales -->
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Form validation and enhancement
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.getElementById('loginForm');
+                const submitBtn = document.getElementById('submitBtn');
+                const userIdInput = document.getElementById('usuario_id');
+
+                // Real-time validation
+                userIdInput.addEventListener('input', function () {
+                    const value = this.value;
+                    if (value && value > 0) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else if (value !== '') {
+                        this.classList.remove('is-valid');
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-valid', 'is-invalid');
+                    }
+                });
+
+                // Form submission with loading state
+                form.addEventListener('submit', function (e) {
+                    const btnText = submitBtn.querySelector('.btn-text');
+                    const btnIcon = submitBtn.querySelector('i');
+
+                    // Add loading state
+                    submitBtn.disabled = true;
+                    btnText.innerHTML = '<span class="loading"></span>Procesando...';
+                    btnIcon.style.display = 'none';
+
+                    // Validate form
+                    if (!userIdInput.value || userIdInput.value <= 0) {
+                        e.preventDefault();
+                        userIdInput.classList.add('is-invalid');
+
+                        // Reset button state
+                        submitBtn.disabled = false;
+                        btnText.textContent = 'Ingresar al Formulario';
+                        btnIcon.style.display = 'inline';
+
+                        // Focus on input
+                        userIdInput.focus();
+                    }
+                });
+
+                // Add floating label effect
+                userIdInput.addEventListener('focus', function () {
+                    this.parentElement.classList.add('focused');
+                });
+
+                userIdInput.addEventListener('blur', function () {
+                    if (!this.value) {
+                        this.parentElement.classList.remove('focused');
+                    }
+                });
+
+                // Animate elements on page load
+                setTimeout(() => {
+                    document.querySelector('.hero-section').classList.add('fade-in');
+                    document.querySelector('.login-card').classList.add('slide-up');
+                }, 100);
+
+                // Auto-focus on user ID input
+                userIdInput.focus();
+
+                // Add ripple effect to buttons
+                const buttons = document.querySelectorAll('.btn-primary, .btn-outline');
+                buttons.forEach(button => {
+                    button.addEventListener('click', function (e) {
+                        const ripple = document.createElement('span');
+                        const rect = this.getBoundingClientRect();
+                        const size = Math.max(rect.width, rect.height);
+                        const x = e.clientX - rect.left - size / 2;
+                        const y = e.clientY - rect.top - size / 2;
+
+                        ripple.style.width = ripple.style.height = size + 'px';
+                        ripple.style.left = x + 'px';
+                        ripple.style.top = y + 'px';
+                        ripple.classList.add('ripple');
+
+                        this.appendChild(ripple);
+
+                        setTimeout(() => {
+                            ripple.remove();
+                        }, 600);
+                    });
                 });
             });
-        });
-        
-        // Add smooth scrolling for better UX
-        document.documentElement.style.scrollBehavior = 'smooth';
-        
-        // Parallax effect for floating shapes (optional)
-        document.addEventListener('mousemove', function(e) {
-            const shapes = document.querySelectorAll('.shape');
-            const mouseX = e.clientX / window.innerWidth;
-            const mouseY = e.clientY / window.innerHeight;
-            
-            shapes.forEach((shape, index) => {
-                const speed = (index + 1) * 0.05;
-                const x = (mouseX - 0.5) * speed * 100;
-                const y = (mouseY - 0.5) * speed * 100;
-                
-                shape.style.transform = `translate(${x}px, ${y}px)`;
+
+            // Add smooth scrolling for better UX
+            document.documentElement.style.scrollBehavior = 'smooth';
+
+            // Parallax effect for floating shapes (optional)
+            document.addEventListener('mousemove', function (e) {
+                const shapes = document.querySelectorAll('.shape');
+                const mouseX = e.clientX / window.innerWidth;
+                const mouseY = e.clientY / window.innerHeight;
+
+                shapes.forEach((shape, index) => {
+                    const speed = (index + 1) * 0.05;
+                    const x = (mouseX - 0.5) * speed * 100;
+                    const y = (mouseY - 0.5) * speed * 100;
+
+                    shape.style.transform = `translate(${x}px, ${y}px)`;
+                });
             });
-        });
-    </script>
-    
+        </script>
+
 </body>
 
 </html>
