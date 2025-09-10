@@ -113,46 +113,34 @@ h2::after {
   transform: translateY(-2px);
 }
 
+/* ============== LOGOS (desktop) ============== */
 .login-logos {
   position: fixed;
-  bottom: 10px;
-  left: 10px;
+  bottom: 14px;
+  left: 14px;
   display: flex;
+  gap: .75rem;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  z-index: 1050; /* por encima de otros elementos decorativos */
-  opacity: 1;
-  visibility: visible;
-  transition: opacity .3s ease, visibility .3s ease;
+  z-index: 25;
+  padding: .35rem .55rem;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(6px) saturate(140%);
+  -webkit-backdrop-filter: blur(6px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
 }
-
-/* Ocultar logos completamente en pantallas pequeñas */
-/* Si deseas que también aparezcan en mobile, comenta o elimina este bloque.
-@media (max-width: 640px) {
-  .login-logos { display:none !important; }
-}
-*/
-
 .login-logos img {
-  max-height: 55px;
+  height: 54px;
   width: auto;
+  display: block;
   object-fit: contain;
+  transition: transform .25s ease, filter .25s ease, opacity .25s ease;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
-  transition: transform .25s ease, filter .25s ease;
+  opacity: .92;
 }
-
-.login-logos img:hover {
-  transform: translateY(-3px) scale(1.03);
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,.35));
-}
-
-/* Ocultar logos SOLO cuando hay un modal abierto */
-body.modal-open .login-logos {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
+.login-logos img:hover { transform: translateY(-3px) scale(1.05); opacity:1; }
+@media (max-width: 760px) { .login-logos { display:none !important; } }
+body.modal-open .login-logos { opacity:0; pointer-events:none; transition:opacity .25s ease; }
 
 /* Styles from templates/formulario.html */
 .evaluation-card {
@@ -867,29 +855,7 @@ body.modal-open .login-logos {
   transform: translateY(-2px);
 }
 
-.index-page .login-logos {
-  position: fixed;
-  bottom: 2rem;
-  left: 2rem;
-  right: auto;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  z-index: 10;
-}
-
-.index-page .login-logos img {
-  height: 50px;
-  width: auto;
-  filter: brightness(0) invert(1);
-  opacity: .8;
-  transition: all .3s ease;
-}
-
-.index-page .login-logos img:hover {
-  opacity: 1;
-  transform: scale(1.1);
-}
+/* index-page overrides no longer needed for logos */
 
 .index-page .loading {
   display: inline-block;
