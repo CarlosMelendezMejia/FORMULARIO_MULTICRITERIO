@@ -27,41 +27,47 @@
   vertical-align: middle;
 }
 
-body {
-  background: url('../img/background.png') no-repeat center center fixed;
-  background-size: cover;
-  min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
+/* Nueva barra de logos */
+.logos-bar {
+  --bar-bg: rgba(255,255,255,0.82);
+  --bar-border: rgba(0,0,0,0.08);
+  position: fixed;
+  inset: auto 0 0 0; /* bottom full width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.2rem;
+  padding: .65rem 1.5rem .55rem;
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  background: linear-gradient(90deg,var(--bar-bg),rgba(255,255,255,0.78));
+  border-top: 1px solid var(--bar-border);
+  z-index: 1040;
+  box-shadow: 0 -2px 8px -2px rgba(0,0,0,0.12);
 }
-
-/* Variables glass (fallback if not defined earlier) */
-:root {
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-shadow: 0 8px 24px rgba(0,0,0,0.15);
+.logos-bar img {
+  max-height: 50px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.25));
+  transition: transform .28s ease, filter .28s ease;
+  opacity: .92;
 }
-
-/* Admin edit modal overrides (avoid unintended transparency from other contexts) */
-.admin-edit-modal .modal-content {
-  background: #ffffffee;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 6px 22px -4px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.03);
+.logos-bar img:hover {
+  transform: translateY(-4px) scale(1.05);
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.35));
+  opacity: 1;
 }
-
-.admin-edit-modal .modal-header {
-  background: linear-gradient(135deg, var(--color-acento) 0%, var(--color-primario-medio) 100%);
-  color: #fff;
-  border-bottom: 1px solid rgba(255,255,255,0.25);
+@media (max-width: 900px) {
+  .logos-bar { gap: 1.2rem; padding:.55rem 1rem; }
+  .logos-bar img { max-height: 42px; }
 }
-
-.admin-edit-modal .modal-title {font-weight:600;}
-.admin-edit-modal .btn-close {filter: invert(1); opacity:.85;}
-.admin-edit-modal .btn-close:hover {opacity:1;}
-.admin-edit-modal .modal-footer {background:#f8fafc; border-top:1px solid #e2e8f0;}
-
-/* Highlight of updated row after password save */
+@media (max-width: 640px) {
+  .logos-bar { gap: .75rem; padding:.45rem .75rem; }
+  .logos-bar img { max-height: 36px; }
+}
+/* Ocultar barra de logos mientras haya modal abierto para evitar distracción */
+body.modal-open .logos-bar { opacity: 0; pointer-events:none; transition: opacity .25s ease; }
 .row-highlight {
   animation: pulseRow 2.2s ease-in-out;
   position: relative;
@@ -156,13 +162,37 @@ h2::after {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
+  z-index: 1050; /* por encima de otros elementos decorativos */
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .3s ease, visibility .3s ease;
 }
 
 /* Ocultar logos completamente en pantallas pequeñas */
+/* Si deseas que también aparezcan en mobile, comenta o elimina este bloque.
 @media (max-width: 640px) {
-  .login-logos {
-    display: none !important;
-  }
+  .login-logos { display:none !important; }
+}
+*/
+
+.login-logos img {
+  max-height: 55px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+  transition: transform .25s ease, filter .25s ease;
+}
+
+.login-logos img:hover {
+  transform: translateY(-3px) scale(1.03);
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.35));
+}
+
+/* Ocultar logos SOLO cuando hay un modal abierto */
+body.modal-open .login-logos {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Styles from templates/formulario.html */
