@@ -45,7 +45,7 @@
 <body class="global-bg">
     <div class="container py-5">
         <div class="evaluation-card">
-            <h2>Formulario de Evaluación Multicriterio</h2>
+            <h2>Formulario de Ponderación</h2>
 
             {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -66,7 +66,8 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Apellidos</label>
-                        <input type="text" class="form-control" name="apellidos" value="{{ usuario.apellidos }}" required>
+                        <input type="text" class="form-control" name="apellidos" value="{{ usuario.apellidos }}"
+                            required>
                     </div>
                     <div class="col-md-6 mt-3">
                         <label class="form-label">Cargo</label>
@@ -74,22 +75,40 @@
                     </div>
                     <div class="col-md-6 mt-3">
                         <label class="form-label">Dependencia</label>
-                        <input type="text" class="form-control" name="dependencia" value="{{ usuario.dependencia }}" required>
+                        <input type="text" class="form-control" name="dependencia" value="{{ usuario.dependencia }}"
+                            required>
                     </div>
                 </div>
 
                 <div class="bg-instruccion">
-                    <strong>Instrucción:</strong> Por favor, según su percepción, ordene los siguientes factores asignando
-                    un valor del <strong>{{ num_factores }} al 1</strong>, donde <strong>{{ num_factores }} representa el factor de mayor
-                        importancia</strong> y <strong>1 el de menor relevancia</strong>.
-                    <br>Nota: Cada número debe ser único. No se pueden repetir valores.
+                    <strong>Instrucciones:</strong>
+                    <p>
+                        Antes de comenzar, revise cuidadosamente cada una de las dimensiones y factores que integran
+                        este instrumento.
+                    </p>
+                    <p>
+                        La escala de ponderación se expresa en un rango del <strong>{{ num_factores }} al 1</strong>
+                        (donde <strong>{{ num_factores }} equivale al factor de mayor importancia</strong>, y el
+                        <strong>1 al de menor relevancia</strong>).
+                    </p>
+                    <p>
+                        Asigne un valor de acuerdo con la importancia que, a su consideración, deberá tener una Persona
+                        Formadora de Docentes. Recuerde que <strong>no es posible repetir valores</strong> en sus
+                        respuestas, ya que cada valor podrá utilizarse una sola vez.
+                    </p>
+                    <p>
+                        Al finalizar, verifique que sus respuestas estén completas antes de enviarlas y concluir su participación.
+                    </p>
                 </div>
                 <div class="alert alert-info mt-3">
                     Los valores no asignados mantendrán abierto el formulario hasta completar todos los factores.
                 </div>
+                <div class="alert alert-info mt-3">
+                    Al pasar el cursor sobre los nombres de los factores, podrá observar sus requisitos.
+                </div>
 
                 <div id="tabla-dimensiones" class="mb-4">
-                    <h5 class="mb-2">Simbología de Dimensiones</h5>
+                    <h5 class="mb-2">Definición de la Dimensión y de sus factores</h5>
                 </div>
 
                 <div class="table-responsive">
@@ -105,10 +124,12 @@
                         <tbody>
                             {% for factor in factores %}
                             <tr>
-                                <td class="text-center align-middle"><span class="badge bg-secondary dimension-badge" title="Dimensión">D{{ factor.dimension }}</span></td>
+                                <td class="text-center align-middle"><span class="badge bg-secondary dimension-badge"
+                                        title="Dimensión">D{{ factor.dimension }}</span></td>
                                 <td>
                                     {% set bg = factor.color or '#cccccc' %}
-                                    <span class="color-label factor-item" data-factor-id="{{ factor.id }}" data-color="{{ bg }}">{{ factor.nombre }}</span>
+                                    <span class="color-label factor-item" data-factor-id="{{ factor.id }}"
+                                        data-color="{{ bg }}">{{ factor.nombre }}</span>
                                     <input type="hidden" name="factor_id_{{ loop.index }}" value="{{ factor.id }}">
                                 </td>
                                 <td>{{ factor.descripcion }}</td>
@@ -116,7 +137,8 @@
                                     <select name="valor_{{ loop.index }}" class="form-select valor-factor">
                                         <option value="">Seleccione</option>
                                         {% for num in range(1, num_factores + 1) %}
-                                        <option value="{{ num }}" {% if respuestas_previas[factor.id]|default('')==num %}selected{% endif %}>
+                                        <option value="{{ num }}" {% if respuestas_previas[factor.id]|default('')==num
+                                            %}selected{% endif %}>
                                             {{ num }}
                                         </option>
                                         {% endfor %}
