@@ -27,47 +27,6 @@
   vertical-align: middle;
 }
 
-/* Nueva barra de logos */
-.logos-bar {
-  --bar-bg: rgba(255,255,255,0.82);
-  --bar-border: rgba(0,0,0,0.08);
-  position: fixed;
-  inset: auto 0 0 0; /* bottom full width */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2.2rem;
-  padding: .65rem 1.5rem .55rem;
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-  background: linear-gradient(90deg,var(--bar-bg),rgba(255,255,255,0.78));
-  border-top: 1px solid var(--bar-border);
-  z-index: 1040;
-  box-shadow: 0 -2px 8px -2px rgba(0,0,0,0.12);
-}
-.logos-bar img {
-  max-height: 50px;
-  width: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,.25));
-  transition: transform .28s ease, filter .28s ease;
-  opacity: .92;
-}
-.logos-bar img:hover {
-  transform: translateY(-4px) scale(1.05);
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,.35));
-  opacity: 1;
-}
-@media (max-width: 900px) {
-  .logos-bar { gap: 1.2rem; padding:.55rem 1rem; }
-  .logos-bar img { max-height: 42px; }
-}
-@media (max-width: 640px) {
-  .logos-bar { gap: .75rem; padding:.45rem .75rem; }
-  .logos-bar img { max-height: 36px; }
-}
-/* Ocultar barra de logos mientras haya modal abierto para evitar distracción */
-body.modal-open .logos-bar { opacity: 0; pointer-events:none; transition: opacity .25s ease; }
 .row-highlight {
   animation: pulseRow 2.2s ease-in-out;
   position: relative;
@@ -912,6 +871,7 @@ body.modal-open .login-logos {
   position: fixed;
   bottom: 2rem;
   left: 2rem;
+  right: auto;
   display: flex;
   align-items: center;
   gap: 1rem;
