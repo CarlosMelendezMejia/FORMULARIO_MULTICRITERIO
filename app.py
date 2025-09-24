@@ -174,10 +174,17 @@ def get_recent_log_entries(limit: int = ADMIN_LOG_LIMIT):
         return []
     if not LOG_FILE_PATH.exists():
         return []
-
+    # Lectura tolerante a errores de codificación (algunos handlers pueden escribir latin-1)
     try:
-        with LOG_FILE_PATH.open("r", encoding="utf-8") as log_file:
-            lines = deque(log_file, maxlen=limit)
+        try:
+            with LOG_FILE_PATH.open("r", encoding="utf-8") as log_file:
+                lines = deque(log_file, maxlen=limit)
+        except UnicodeDecodeError:
+            # Reintentar con latin-1 y normalizar a utf-8 reemplazando bytes problemáticos
+            with LOG_FILE_PATH.open("r", encoding="latin-1", errors="replace") as log_file:
+                raw_lines = deque(log_file, maxlen=limit)
+            # Normalizar: aseguramos que la estructura se mantenga
+            lines = deque([l.replace("\ufffd", "?") for l in raw_lines], maxlen=limit)
     except OSError:
         app.logger.exception("No se pudo leer el archivo de logs")
         return []
