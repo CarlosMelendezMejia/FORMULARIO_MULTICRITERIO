@@ -12,6 +12,7 @@ import csv
 from pathlib import Path
 from concurrent_log_handler import ConcurrentRotatingFileHandler
 from datetime import datetime, timedelta
+import re
 
 app = Flask(__name__)
 
@@ -81,6 +82,46 @@ app.config.setdefault("SESSION_COOKIE_SAMESITE", "Lax")
 app.config.setdefault("SESSION_COOKIE_HTTPONLY", True)
 app.config.setdefault("SESSION_COOKIE_SECURE", False)  # Cambiar a True si se usa HTTPS en prod
 app.config["SESSION_COOKIE_PATH"] = _compute_cookie_path(APP_PREFIX)
+
+# ==============================
+# MODO MANTENIMIENTO
+# ==============================
+# Controlado por variable de entorno MAINTENANCE=1
+# Opcionalmente se puede definir MAINTENANCE_ETA (ej: "30-45 minutos")
+MAINTENANCE_FLAG = os.getenv("MAINTENANCE", "0") == "1"
+MAINTENANCE_ETA = os.getenv("MAINTENANCE_ETA", "30-45 minutos")
+
+def is_maintenance_enabled() -> bool:
+    return MAINTENANCE_FLAG
+
+# Rutas exentas (permitimos acceso a estáticos, favicon e index de mantenimiento)
+MAINTENANCE_EXEMPT = re.compile(
+    r"^/(static/|mantenimiento$|mantenimiento/|favicon\.ico$|unam_ico\.ico$)"
+)
+
+@app.before_request
+def maintenance_guard():
+    # Evitar loop infinito: si ya estamos en la página de mantenimiento o es un recurso exento, continuar
+    if not is_maintenance_enabled():
+        return
+    path = request.path.lstrip("/")
+    # Permitir API healthcheck opcional
+    if path in ("health", "mantenimiento") or MAINTENANCE_EXEMPT.match(request.path):
+        return
+    # Código 503 para indicar temporalidad (no cachear) y SEO friendly
+    return render_template(
+        "mantenimiento.html",
+        year=datetime.utcnow().year,
+        ventana=MAINTENANCE_ETA,
+    ), 503
+
+@app.route("/mantenimiento")
+def mantenimiento_page():
+    return render_template(
+        "mantenimiento.html",
+        year=datetime.utcnow().year,
+        ventana=MAINTENANCE_ETA,
+    ), (503 if is_maintenance_enabled() else 200)
 
 # Configuración de registro
 os.makedirs("static/logs", exist_ok=True)

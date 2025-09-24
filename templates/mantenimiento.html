@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mantenimiento | Sistema de Ponderación</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/unam_ico.ico') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <style>
+    /* Variables CSS mejoradas */
+    :root {
+      --color-acento: #142383;
+      --color-primario-medio: #2f4eb9;
+      --color-texto-suave: #6b7280;
+      --color-texto-secundario: #64748b;
+      --color-success: #00ffa3;
+      --color-success-dark: #008f5d;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --blur-glass: blur(8px);
+      --border-radius: 1rem;
+      --border-radius-full: 2rem;
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Base styles mejorados */
+    body.global-bg.maintenance-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Contenedor principal */
+    .maintenance-wrapper {
+      max-width: 800px;
+      width: 100%;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Card principal mejorada */
+    .maintenance-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: var(--blur-glass);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--border-radius);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-medium);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .maintenance-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--color-acento), var(--color-primario-medio), var(--color-success));
+    }
+
+    /* Badge de estado mejorado */
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0, 255, 163, 0.1);
+      border: 1px solid rgba(0, 255, 163, 0.3);
+      padding: 0.6rem 1rem;
+      border-radius: var(--border-radius-full);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: var(--color-success-dark);
+      transition: var(--transition-smooth);
+    }
+
+    .badge-status:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--color-success), var(--color-success-dark));
+      box-shadow: 0 0 0 4px rgba(0, 255, 163, 0.2);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+      }
+    }
+
+    /* Título mejorado */
+    .maintenance-card h1 {
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      line-height: 1.1;
+      color: #1f2937;
+    }
+
+    .maintenance-card h1 .grad {
+      background: linear-gradient(135deg, var(--color-acento), var(--color-primario-medio));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: inline-block;
+    }
+
+    /* Párrafo principal */
+    .maintenance-card p.lead {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: var(--color-texto-suave);
+      margin-bottom: 1.5rem;
+      max-width: 600px;
+    }
+
+    /* ETA mejorado */
+    .eta {
+      font-size: 0.9rem;
+      color: var(--color-texto-secundario);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      background: rgba(59, 130, 246, 0.1);
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .eta svg {
+      color: #3b82f6;
+      opacity: 0.8;
+    }
+
+    .eta strong {
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    /* Botones de acción mejorados */
+    .maintenance-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 1.5rem 0 2rem;
+    }
+
+    .btn-primary,
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: var(--transition-smooth);
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-acento), var(--color-primario-medio));
+      color: white;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-medium);
+      color: white;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--color-acento);
+      border: 1px solid rgba(20, 35, 131, 0.3);
+    }
+
+    .btn-outline:hover {
+      background: var(--color-acento);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    /* Log mejorado */
+    .mini-log {
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+      font-size: 0.75rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      line-height: 1.4;
+      max-height: 180px;
+      overflow-y: auto;
+      color: #374151;
+      position: relative;
+    }
+
+    .mini-log::before {
+      content: '';
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 8px;
+      height: 8px;
+      background: var(--color-success);
+      border-radius: 50%;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.3; }
+    }
+
+    .log-line {
+      display: block;
+      margin-bottom: 0.25rem;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .log-line::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--color-success-dark);
+      font-weight: bold;
+    }
+
+    .log-line strong {
+      color: var(--color-acento);
+    }
+
+    /* Footer mejorado */
+    footer.maintenance-footer {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    /* Responsive mejorado */
+    @media (max-width: 768px) {
+      .maintenance-card {
+        padding: 2rem 1.5rem;
+      }
+      
+      .maintenance-card p.lead {
+        font-size: 1rem;
+      }
+      
+      .maintenance-actions {
+        flex-direction: column;
+      }
+      
+      .btn-primary,
+      .btn-outline {
+        justify-content: center;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body.global-bg.maintenance-page {
+        padding: 1rem 0.5rem;
+      }
+      
+      .maintenance-card {
+        padding: 1.5rem 1rem;
+      }
+    }
+
+    /* Mejoras de accesibilidad */
+    .maintenance-card *:focus-visible {
+      outline: 2px solid var(--color-acento);
+      outline-offset: 2px;
+      border-radius: 0.25rem;
+    }
+
+    /* Animación de entrada suave para elementos */
+    .badge-status,
+    .maintenance-card h1,
+    .maintenance-card p.lead,
+    .eta,
+    .maintenance-actions,
+    .mini-log {
+      animation: fadeInUp 0.6s ease-out forwards;
+      animation-delay: calc(var(--delay, 0) * 0.1s);
+    }
+
+    .badge-status { --delay: 1; }
+    .maintenance-card h1 { --delay: 2; }
+    .maintenance-card p.lead { --delay: 3; }
+    .eta { --delay: 4; }
+    .maintenance-actions { --delay: 5; }
+    .mini-log { --delay: 6; }
+
+    /* Estado de carga para el botón de reintento */
+    .btn-primary.loading {
+      position: relative;
+      color: transparent;
+    }
+
+    .btn-primary.loading::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 50%;
+      left: 50%;
+      margin-left: -10px;
+      margin-top: -10px;
+      border: 2px solid transparent;
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="global-bg maintenance-page">
+  <div class="maintenance-wrapper">
+    <div class="login-card maintenance-card">
+      <div class="badge-status">
+        <span class="dot"></span> 
+        Mantenimiento Programado
+      </div>
+      
+      <h1>
+        <span class="grad">Estamos realizando mejoras</span>
+      </h1>
+      
+      <p class="lead">
+        El sistema de ponderación está temporalmente fuera de servicio mientras aplicamos actualizaciones importantes. Agradecemos tu paciencia y comprensión durante este proceso.
+      </p>
+      
+      <div class="eta">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Tiempo estimado de finalización: <strong>{{ ventana or '30-45 minutos' }}</strong>
+      </div>
+      
+      <div class="mini-log" id="logContainer">
+        <span class="log-line"><strong>Estado:</strong> Preparando migraciones de base de datos...</span>
+        <span class="log-line">Aplicando parches de seguridad críticos...</span>
+        <span class="log-line">Optimizando índices y consultas...</span>
+        <span class="log-line">Actualizando dependencias del sistema...</span>
+        <span class="log-line">Reiniciando servicios principales...</span>
+        <span class="log-line"><strong>Progreso:</strong> 75% completado</span>
+      </div>
+      
+      <footer class="maintenance-footer">
+        <i class="bi bi-shield-check me-1"></i>
+        © {{ year or 2025 }} Sistema de Ponderación UNAM - Todos los derechos reservados
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Función mejorada para el botón de reintento
+    function handleRetry(button) {
+      // Agregar clase de loading
+      button.classList.add('loading');
+      button.disabled = true;
+      
+      // Simular verificación (en producción esto haría una llamada real al servidor)
+      setTimeout(() => {
+        // Intentar recargar la página
+        location.reload();
+      }, 1500);
+    }
+
+    // Auto-refresh cada 2 minutos para verificar si el mantenimiento terminó
+    setInterval(() => {
+      fetch(window.location.href, { method: 'HEAD' })
+        .then(response => {
+          if (response.ok) {
+            location.reload();
+          }
+        })
+        .catch(() => {
+          // Falló la verificación, mantener página actual
+        });
+    }, 120000);
+
+    // Actualizar el log dinámicamente
+    function updateLog() {
+      const logContainer = document.getElementById('logContainer');
+      const messages = [
+        '<span class="log-line"><strong>Estado:</strong> Validando integridad de datos...</span>',
+        '<span class="log-line">Limpiando cachés temporales...</span>',
+        '<span class="log-line">Verificando conexiones de red...</span>',
+        '<span class="log-line">Ejecutando pruebas de sistema...</span>',
+        '<span class="log-line"><strong>Progreso:</strong> 85% completado</span>'
+      ];
+      
+      // Actualizar log cada 30 segundos
+      let messageIndex = 0;
+      setInterval(() => {
+        if (messageIndex < messages.length) {
+          const lines = logContainer.querySelectorAll('.log-line');
+          if (lines.length >= 6) {
+            lines[0].remove();
+          }
+          logContainer.insertAdjacentHTML('beforeend', messages[messageIndex]);
+          messageIndex++;
+          
+          // Scroll al final del log
+          logContainer.scrollTop = logContainer.scrollHeight;
+        }
+      }, 30000);
+    }
+
+    // Inicializar actualizaciones del log
+    document.addEventListener('DOMContentLoaded', updateLog);
+
+    // Prevenir envío de formularios accidental
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.target.matches('button, a, [contenteditable]')) {
+        e.preventDefault();
+        document.getElementById('retryBtn').click();
+      }
+    });
+
+    // Notificación de visibilidad de página (para auto-refresh cuando el usuario regrese)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Usuario regresó a la página, verificar estado
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      }
+    });
+  </script>
+</body>
+</html>
