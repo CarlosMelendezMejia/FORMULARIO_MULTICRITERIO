@@ -72,8 +72,8 @@
                                 {% else %}
                                 <span class="text-muted small me-1">Sin usuario</span>
                                 {% endif %}
-                                <form method="POST" action="{{ url_for('reiniciar_respuestas_formulario', id_formulario=f.id) }}" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-warning me-1" onclick="return confirm('¿Reiniciar las respuestas de este formulario? Esta acción no modifica los datos del usuario.');">
+                                <form method="POST" action="{{ url_for('reiniciar_respuestas_formulario', id_formulario=f.id) }}" style="display:inline;" class="reiniciar-form" data-form-id="{{ f.id }}" data-form-nombre="{{ f.nombre }}">
+                                    <button type="button" class="btn btn-sm btn-outline-warning me-1 btn-reiniciar-row" data-bs-toggle="modal" data-bs-target="#confirmReiniciarRowModal" data-form-id="{{ f.id }}">
                                         <i class="bi bi-arrow-counterclockwise me-1"></i>Reiniciar
                                     </button>
                                 </form>
@@ -177,6 +177,27 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Modal confirmación reinicio individual -->
+    <div class="modal fade" id="confirmReiniciarRowModal" tabindex="-1" aria-labelledby="confirmReiniciarRowLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmReiniciarRowLabel"><i class="bi bi-arrow-counterclockwise me-2"></i>Confirmar reinicio de respuestas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">¿Deseas reiniciar las respuestas del formulario <strong id="reiniciarFormNombre"></strong> (<span id="reiniciarFormId"></span>)?</p>
+                    <p class="small text-muted mb-0">Esta acción elimina las respuestas y ponderaciones asociadas a este formulario, pero <strong>no modifica los datos del usuario asignado</strong>.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnConfirmReiniciarRow" class="btn btn-danger">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Reiniciar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
     (function(){
         // Preservar scroll y resaltar fila editada tras actualizar protección
@@ -211,6 +232,34 @@
                     sessionStorage.removeItem('admin_form_focus');
                 }
             } catch(e) { /* ignore */ }
+        });
+
+        // Reinicio individual con modal
+        let formToSubmit = null;
+        const modalEl = document.getElementById('confirmReiniciarRowModal');
+        const formIdSpan = document.getElementById('reiniciarFormId');
+        const formNombreStrong = document.getElementById('reiniciarFormNombre');
+        const btnConfirm = document.getElementById('btnConfirmReiniciarRow');
+
+        document.querySelectorAll('.btn-reiniciar-row').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const parentForm = btn.closest('form.reiniciar-form');
+                if(!parentForm) return;
+                formToSubmit = parentForm;
+                const fid = parentForm.getAttribute('data-form-id');
+                const fname = parentForm.getAttribute('data-form-nombre') || 'ID ' + fid;
+                formIdSpan.textContent = 'ID ' + fid;
+                formNombreStrong.textContent = fname;
+            });
+        });
+
+        btnConfirm.addEventListener('click', () => {
+            if(formToSubmit){
+                formToSubmit.submit();
+                formToSubmit = null;
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                modalInstance && modalInstance.hide();
+            }
         });
     })();
     </script>
