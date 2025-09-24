@@ -13,6 +13,7 @@ from pathlib import Path
 from concurrent_log_handler import ConcurrentRotatingFileHandler
 from datetime import datetime, timedelta
 import re
+from collections import deque
 
 app = Flask(__name__)
 
@@ -133,6 +134,92 @@ log_formatter = logging.Formatter("%(asctime)s %(levelname)s: %(message)s")
 log_handler.setFormatter(log_formatter)
 app.logger.addHandler(log_handler)
 app.logger.setLevel(logging.DEBUG)
+
+LOG_FILE_PATH = Path(app.root_path) / "static/logs/app.log"
+LOG_LINE_REGEX = re.compile(
+    r"^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d+\s+(?P<level>[A-Z]+):\s+(?P<message>.*)$"
+)
+FORMULARIO_PATTERNS = [
+    re.compile(r"formulario=([^\s,]+)", re.IGNORECASE),
+    re.compile(r"formulario ['\"]([^'\"]+)['\"]", re.IGNORECASE),
+    re.compile(r"formulario [^'\"]*['\"]([^'\"]+)['\"]", re.IGNORECASE),
+]
+try:
+    ADMIN_LOG_LIMIT = int(os.getenv("ADMIN_LOG_LIMIT", 200))
+except (TypeError, ValueError):
+    ADMIN_LOG_LIMIT = 200
+
+
+def infer_log_actor(message: str) -> str:
+    message_lower = message.lower()
+    if "admin" in message_lower:
+        return "Administrador"
+    if "usuario" in message_lower:
+        return "Usuario"
+    return "Sistema"
+
+
+def extract_formulario_from_message(message: str) -> str:
+    for pattern in FORMULARIO_PATTERNS:
+        match = pattern.search(message)
+        if match:
+            value = match.group(1).strip().strip("'\"")
+            value = value.rstrip(".,")
+            return value
+    return ""
+
+
+def get_recent_log_entries(limit: int = ADMIN_LOG_LIMIT):
+    if limit <= 0:
+        return []
+    if not LOG_FILE_PATH.exists():
+        return []
+
+    try:
+        with LOG_FILE_PATH.open("r", encoding="utf-8") as log_file:
+            lines = deque(log_file, maxlen=limit)
+    except OSError:
+        app.logger.exception("No se pudo leer el archivo de logs")
+        return []
+
+    entries = []
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line:
+            continue
+        match = LOG_LINE_REGEX.match(line)
+        if not match:
+            continue
+
+        timestamp_str = match.group("timestamp")
+        level = match.group("level").upper()
+        message = match.group("message").strip()
+
+        try:
+            timestamp_obj = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+            fecha = timestamp_obj.strftime("%d/%m/%Y")
+            hora = timestamp_obj.strftime("%H:%M:%S")
+        except ValueError:
+            fecha_hora = timestamp_str.split(" ", 1)
+            if len(fecha_hora) == 2:
+                fecha, hora = fecha_hora
+            else:
+                fecha = timestamp_str
+                hora = "--:--:--"
+
+        entries.append(
+            {
+                "fecha": fecha,
+                "hora": hora,
+                "nivel": level,
+                "actor": infer_log_actor(message),
+                "formulario": extract_formulario_from_message(message),
+                "mensaje": message,
+                "timestamp": timestamp_str,
+            }
+        )
+
+    return entries
 
 # Configuración de caché compartido
 CACHE_TTL = int(os.getenv("RANKING_CACHE_TTL", 300))
@@ -890,6 +977,27 @@ def panel_admin():
         count_bloqueados=count_bloqueados,
         count_abiertos=count_abiertos,
     )
+
+
+@app.route("/admin/logs")
+def admin_logs():
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+
+    default_limit = ADMIN_LOG_LIMIT if ADMIN_LOG_LIMIT > 0 else 200
+    limit_param = request.args.get("limit", type=int)
+    if limit_param:
+        limit = max(10, min(limit_param, 1000))
+    else:
+        limit = max(10, min(default_limit, 1000))
+
+    log_entries = get_recent_log_entries(limit=limit)
+    logs = list(reversed(log_entries))
+
+    ip = request.remote_addr
+    app.logger.info("Admin consulto logs ip=%s total=%s limit=%s", ip, len(logs), limit)
+
+    return render_template("admin_logs.html", logs=logs, limit=limit)
 
 
 @app.route("/admin/export_csv")
