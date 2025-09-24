@@ -72,6 +72,11 @@
                                 {% else %}
                                 <span class="text-muted small me-1">Sin usuario</span>
                                 {% endif %}
+                                <form method="POST" action="{{ url_for('reiniciar_respuestas_formulario', id_formulario=f.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning me-1" onclick="return confirm('¿Reiniciar las respuestas de este formulario? Esta acción no modifica los datos del usuario.');">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reiniciar
+                                    </button>
+                                </form>
                                 <form method="POST" action="{{ url_for('eliminar_formulario', id=f.id) }}" style="display:inline;">
                                     <button type="submit" class="btn btn-sm btn-danger">
                                         <i class="bi bi-trash me-1"></i>Eliminar
