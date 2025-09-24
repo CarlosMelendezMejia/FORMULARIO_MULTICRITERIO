@@ -14,15 +14,21 @@ RANKING_CACHE_KEY = app_module.RANKING_CACHE_KEY
 bloqueo_key = app_module._bloqueo_cache_key
 
 class DummyCursor:
-    def __init__(self, fetchone_results=None):
+    def __init__(self, fetchone_results=None, fetchall_results=None):
         self.queries = []
         self.fetchone_results = fetchone_results or []
+        self.fetchall_results = fetchall_results or []
 
     def execute(self, query, params=None):
         self.queries.append((query, params))
 
     def fetchone(self):
         return self.fetchone_results.pop(0)
+
+    def fetchall(self):
+        if self.fetchall_results:
+            return self.fetchall_results.pop(0)
+        return []
 
     def close(self):
         pass
@@ -39,8 +45,10 @@ class DummyConnection:
         pass
 
 
-def create_dummy(monkeypatch, fetchone_results=None):
-    cursor = DummyCursor(fetchone_results=fetchone_results)
+def create_dummy(monkeypatch, fetchone_results=None, fetchall_results=None):
+    cursor = DummyCursor(
+        fetchone_results=fetchone_results, fetchall_results=fetchall_results
+    )
     conn = DummyConnection(cursor)
     monkeypatch.setattr(db, "get_connection", lambda: conn)
     monkeypatch.setattr(app_module, "get_connection", lambda: conn)
@@ -97,6 +105,52 @@ def test_reiniciar_formularios(monkeypatch):
     assert conn.commit_called
     assert cache.get(RANKING_CACHE_KEY) is None
     assert cache.get(bloqueo_key(5, 9)) is None
+
+
+def test_reiniciar_respuestas_formulario_requires_admin(monkeypatch):
+    cursor, conn = create_dummy(monkeypatch)
+    with app.test_client() as client:
+        resp = client.post("/admin/formularios/7/reiniciar")
+        assert resp.status_code == 302
+        assert "/admin/login" in resp.headers["Location"]
+    assert cursor.queries == []
+
+
+def test_reiniciar_respuestas_formulario(monkeypatch):
+    fetchall_results = [[{"id": 10, "id_usuario": 5}, {"id": 11, "id_usuario": 9}]]
+    cursor, conn = create_dummy(monkeypatch, fetchall_results=fetchall_results)
+    cache.clear()
+    cache.set(RANKING_CACHE_KEY, {"ranking": "x"})
+    cache.set(bloqueo_key(5, 3), True, timeout=app_module.BLOQUEO_CACHE_TTL)
+    cache.set(bloqueo_key(9, 3), True, timeout=app_module.BLOQUEO_CACHE_TTL)
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess["is_admin"] = True
+        resp = client.post("/admin/formularios/3/reiniciar")
+        assert resp.status_code == 302
+        assert resp.headers["Location"].endswith("/admin/formularios")
+
+    assert cursor.queries[0] == (
+        "SELECT id, id_usuario FROM respuesta WHERE id_formulario = %s",
+        (3,),
+    )
+    assert cursor.queries[1] == (
+        "DELETE FROM ponderacion_admin WHERE id_respuesta IN (%s, %s)",
+        (10, 11),
+    )
+    assert cursor.queries[2] == (
+        "DELETE FROM respuesta_detalle WHERE id_respuesta IN (%s, %s)",
+        (10, 11),
+    )
+    assert cursor.queries[3] == (
+        "DELETE FROM respuesta WHERE id_formulario = %s",
+        (3,),
+    )
+    assert conn.commit_called
+    assert cache.get(RANKING_CACHE_KEY) is None
+    assert cache.get(bloqueo_key(5, 3)) is None
+    assert cache.get(bloqueo_key(9, 3)) is None
 
 
 def test_eliminar_formulario_invalida_cache(monkeypatch):

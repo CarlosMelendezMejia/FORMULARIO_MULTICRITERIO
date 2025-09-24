@@ -1185,6 +1185,55 @@ def reiniciar_formularios():
     return redirect(url_for("administrar_formularios"))
 
 
+@app.route("/admin/formularios/<int:id_formulario>/reiniciar", methods=["POST"])
+def reiniciar_respuestas_formulario(id_formulario: int):
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+
+    ip = request.remote_addr
+    get_db()
+    app.logger.info(
+        "Reiniciar respuestas formulario=%s ip=%s", id_formulario, ip
+    )
+
+    g.cursor.execute(
+        "SELECT id, id_usuario FROM respuesta WHERE id_formulario = %s",
+        (id_formulario,),
+    )
+    respuestas = g.cursor.fetchall()
+    ids_respuestas = [row["id"] for row in respuestas]
+
+    if ids_respuestas:
+        placeholders = ", ".join(["%s"] * len(ids_respuestas))
+        params = tuple(ids_respuestas)
+        g.cursor.execute(
+            f"DELETE FROM ponderacion_admin WHERE id_respuesta IN ({placeholders})",
+            params,
+        )
+        g.cursor.execute(
+            f"DELETE FROM respuesta_detalle WHERE id_respuesta IN ({placeholders})",
+            params,
+        )
+
+    g.cursor.execute(
+        "DELETE FROM respuesta WHERE id_formulario = %s", (id_formulario,)
+    )
+    g.conn.commit()
+
+    for id_usuario in {row["id_usuario"] for row in respuestas}:
+        invalidate_bloqueo_cache(id_usuario, id_formulario)
+    invalidate_ranking_cache()
+
+    app.logger.info(
+        "Formulario %s reiniciado eliminadas=%s ip=%s",
+        id_formulario,
+        len(ids_respuestas),
+        ip,
+    )
+    flash("Respuestas del formulario reiniciadas.")
+    return redirect(url_for("administrar_formularios"))
+
+
 @app.route("/admin/ponderacion_universal", methods=["POST"])
 def ponderacion_universal():
     if not session.get("is_admin"):
