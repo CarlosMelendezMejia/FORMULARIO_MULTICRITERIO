@@ -150,11 +150,29 @@ def closure_guard():
         return
     if not is_closure_enabled():
         return
-    path = request.path.lstrip("/")
-    # Permitir health opcional, mantenimiento y recursos exentos
-    if path in ("health", "mantenimiento", "cierre") or CLOSURE_EXEMPT.match(request.path):
+    # Solo aplicar cierre a rutas de formulario/usuarios finales
+    # Permitir siempre: admin, estáticos, favicon, páginas informativas
+    path = request.path
+    if (
+        path.startswith("/admin")
+        or path.startswith("/static/")
+        or path in ("/favicon.ico", "/unam_ico.ico", "/mantenimiento", "/cierre", "/health")
+    ):
         return
-    # Mostrar página de cierre para cualquier otra ruta de usuarios
+
+    # Endpoints de formulario a bloquear
+    is_form_route = (
+        path.startswith("/formulario")
+        or path == "/guardar_respuesta"
+        or path == "/formulario_redirect"
+    )
+    if not is_form_route:
+        return
+
+    # Para POST (p.ej. /formulario_redirect, /guardar_respuesta) redirigir a /cierre
+    if request.method == "POST":
+        return redirect(url_for("cierre_page"))
+    # Para GET mostrar la página de cierre directamente
     return render_template(
         "cierre.html",
         year=datetime.utcnow().year,

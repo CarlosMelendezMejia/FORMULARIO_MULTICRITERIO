@@ -430,9 +430,9 @@ body.modal-open .login-logos { opacity:0; pointer-events:none; transition:opacit
 }
 
 .alert-warning {
-  background-color: rgba(255, 193, 7, 0.2);
+  background-color: rgba(191, 149, 24, 0.2);
   border-color: rgba(255, 193, 7, 0.3);
-  color: #856404;
+  color: #362b09;
   border-radius: 8px;
 }
 
