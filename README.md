@@ -102,3 +102,18 @@ que altere el campo `bloqueado` debe llamar a `invalidate_bloqueo_cache` con
 el identificador del usuario y del formulario para eliminar la entrada
 correspondiente y evitar inconsistencias visibles.
 
+ 
+## Modo mantenimiento y modo cierre
+
+Además de las variables anteriores, la aplicación soporta dos banderas para controlar el acceso de usuarios finales:
+
+- MAINTENANCE: cuando es 1, muestra una página de mantenimiento en todas las rutas públicas (código 503). El panel de administración y los recursos estáticos permanecen accesibles. Página directa: /mantenimiento.
+- MAINTENANCE_ETA: texto informativo del tiempo estimado (por ejemplo, "30-45 minutos").
+
+- CLOSURE: cuando es 1, el sistema queda “cerrado” para capturas; se muestra una página de cierre y no se aceptan más respuestas. Admin y recursos estáticos permanecen accesibles. Página directa: /cierre.
+- CLOSURE_MESSAGE: mensaje personalizado a mostrar en la página de cierre.
+
+Notas:
+- Si MAINTENANCE=1 y CLOSURE=1 a la vez, la página de mantenimiento tiene prioridad.
+- Rutas exentas en cierre: /static, favicon, /cierre y todo /admin.
+

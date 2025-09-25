@@ -124,6 +124,51 @@ def mantenimiento_page():
         ventana=MAINTENANCE_ETA,
     ), (503 if is_maintenance_enabled() else 200)
 
+# ==============================
+# MODO CIERRE (no aceptar respuestas)
+# ==============================
+# Controlado por variable de entorno CLOSURE=1
+# Mensaje configurable con CLOSURE_MESSAGE
+CLOSURE_FLAG = os.getenv("CLOSURE", "0") == "1"
+CLOSURE_MESSAGE = os.getenv(
+    "CLOSURE_MESSAGE",
+    "Por el momento el sistema está cerrado y no se aceptan más respuestas.",
+)
+
+def is_closure_enabled() -> bool:
+    return CLOSURE_FLAG
+
+# Rutas exentas: estáticos, favicon, página de cierre y todo el panel admin
+CLOSURE_EXEMPT = re.compile(
+    r"^/(static/|cierre$|cierre/|favicon\.ico$|unam_ico\.ico$|admin($|/))"
+)
+
+@app.before_request
+def closure_guard():
+    # Si mantenimiento está activo, tiene prioridad sobre cierre
+    if is_maintenance_enabled():
+        return
+    if not is_closure_enabled():
+        return
+    path = request.path.lstrip("/")
+    # Permitir health opcional, mantenimiento y recursos exentos
+    if path in ("health", "mantenimiento", "cierre") or CLOSURE_EXEMPT.match(request.path):
+        return
+    # Mostrar página de cierre para cualquier otra ruta de usuarios
+    return render_template(
+        "cierre.html",
+        year=datetime.utcnow().year,
+        mensaje=CLOSURE_MESSAGE,
+    ), 200
+
+@app.route("/cierre")
+def cierre_page():
+    return render_template(
+        "cierre.html",
+        year=datetime.utcnow().year,
+        mensaje=CLOSURE_MESSAGE,
+    ), 200
+
 # Configuración de registro
 os.makedirs("static/logs", exist_ok=True)
 log_handler = ConcurrentRotatingFileHandler(

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cierre | Sistema de Ponderación</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/unam_ico.ico') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <style>
+    body.global-bg.cierre-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .cierre-wrapper { max-width: 800px; width: 100%; }
+    .cierre-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .badge-cierre {
+      display: inline-flex; gap: .5rem; align-items: center; margin-bottom: 1rem;
+      background: rgba(239, 68, 68, 0.08); color: #991b1b; border: 1px solid rgba(239,68,68,.3);
+      padding: .5rem .9rem; border-radius: 999px; font-size: .78rem; font-weight: 600; letter-spacing: .08em;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ef4444, #b91c1c); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18); }
+    h1 { font-weight: 800; font-size: clamp(1.8rem, 5vw, 2.4rem); margin-bottom: .75rem; color: #111827; }
+    .lead { color: #4b5563; }
+    .actions { display:flex; gap:.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+    .btn-outline { background: transparent; color: #1f2937; border: 1px solid rgba(17, 24, 39, .2); }
+    .btn-outline:hover { background: #111827; color: #fff; }
+    footer.cierre-footer { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: .85rem; text-align:center; }
+  </style>
+</head>
+<body class="global-bg cierre-page">
+  <div class="cierre-wrapper">
+    <div class="login-card cierre-card">
+      <div class="badge-cierre"><span class="dot"></span> Cierre de capturas</div>
+      <h1>La captura de respuestas ha concluido</h1>
+      <p class="lead">{{ mensaje or 'Por el momento el sistema está cerrado y no se aceptan más respuestas.' }}</p>
+      <div class="actions">
+        <a class="btn btn-outline" href="{{ url_for('index') }}"><i class="bi bi-house-door me-1"></i>Ir al inicio</a>
+        <a class="btn btn-outline" href="{{ url_for('mantenimiento_page') }}"><i class="bi bi-info-circle me-1"></i>Estado del sistema</a>
+      </div>
+      <footer class="cierre-footer">
+        <i class="bi bi-clock-history me-1"></i>
+        © {{ year or 2025 }} Sistema de Ponderación UNAM
+      </footer>
+    </div>
+  </div>
+  <script>
+    // Redirige a inicio si se desactiva el cierre (usuario vuelve a la pestaña)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        fetch("{{ url_for('cierre_page') }}", { method: 'HEAD' })
+          .then(r => { if (!r.ok) location.href = "{{ url_for('index') }}"; })
+          .catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
