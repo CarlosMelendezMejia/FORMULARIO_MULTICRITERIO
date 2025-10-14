@@ -129,22 +129,35 @@
         </table>
         <div class="small text-muted mt-2">Los factores con total 0 indican que faltan ponderaciones. El porcentaje representa la proporción de cada factor respecto al total de todas las ponderaciones ({{ '%.2f'|format(suma_total) }}).</div>
       </div>
-      <canvas id="rankingChart" class="mt-4"></canvas>
+      
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <h5 class="text-center mb-3">Ranking por Factor</h5>
+          <canvas id="rankingChart"></canvas>
+        </div>
+        <div class="col-md-6">
+          <h5 class="text-center mb-3">Distribución por Dimensión</h5>
+          <canvas id="dimensionPieChart"></canvas>
+        </div>
+      </div>
     </div>
     {% endif %}
   </div>
 
   {% if not estado_ranking %}
   <script>
-    // Renderizar gráfico con datos desde Jinja
+    // Renderizar gráfico de barras con datos desde Jinja
     const factorIds = {{ ranking | map(attribute='id') | list | tojson | safe }};
     const factorNombres = {{ ranking | map(attribute='nombre') | list | tojson | safe }};
     const factorTotals = {{ ranking | map(attribute='total') | list | tojson | safe }};
     const factorColors = {{ ranking | map(attribute='color') | map('default', '#cccccc') | list | tojson | safe }};
+    const factorDimensiones = {{ ranking | map(attribute='dimension') | list | tojson | safe }};
+    const sumaTotal = {{ suma_total }};
     
     // Generar etiquetas usando el ID del factor: "Factor 1", "Factor 5", etc.
     const factorLabels = factorIds.map(id => `Factor ${id}`);
 
+    // Gráfico de barras
     const ctx = document.getElementById('rankingChart').getContext('2d');
     new Chart(ctx, {
       type: 'bar',
@@ -184,6 +197,51 @@
               },
               label: function(context) {
                 return 'Total: ' + context.parsed.y.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Calcular suma de porcentajes por dimensión
+    let dimension1Total = 0;
+    let dimension2Total = 0;
+    
+    for (let i = 0; i < factorTotals.length; i++) {
+      const porcentaje = (factorTotals[i] / sumaTotal) * 100;
+      if (factorDimensiones[i] === 1) {
+        dimension1Total += porcentaje;
+      } else if (factorDimensiones[i] === 2) {
+        dimension2Total += porcentaje;
+      }
+    }
+
+    // Gráfico de pastel por dimensión
+    const ctxPie = document.getElementById('dimensionPieChart').getContext('2d');
+    new Chart(ctxPie, {
+      type: 'pie',
+      data: {
+        labels: ['Dimensión 1', 'Dimensión 2'],
+        datasets: [{
+          data: [dimension1Total, dimension2Total],
+          backgroundColor: ['#0d6efd', '#6c757d'],
+          borderColor: ['#ffffff', '#ffffff'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                return label + ': ' + value.toFixed(1) + '%';
               }
             }
           }
