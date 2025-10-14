@@ -1758,6 +1758,7 @@ def vista_ranking():
         ranking_query = """
             SELECT f.nombre,
                    f.color,
+                   f.dimension,
                    SUM(pa.peso_admin * rd.valor_usuario) AS total
             FROM factor f
             JOIN ponderacion_admin pa ON f.id = pa.id_factor
@@ -1770,7 +1771,7 @@ def vista_ranking():
             JOIN respuesta r ON r.id = rc.id_respuesta AND r.bloqueado = 1
             JOIN respuesta_detalle rd
                 ON rd.id_respuesta = pa.id_respuesta AND rd.id_factor = f.id
-            GROUP BY f.id, f.nombre, f.color
+            GROUP BY f.id, f.nombre, f.color, f.dimension
             ORDER BY total DESC
         """
         g.cursor.execute(ranking_query, (count_factores,))
@@ -1828,6 +1829,7 @@ def export_ranking_csv():
         ranking_query = """
             SELECT f.nombre,
                    f.color,
+                   f.dimension,
                    SUM(pa.peso_admin * rd.valor_usuario) AS total
             FROM factor f
             JOIN ponderacion_admin pa ON f.id = pa.id_factor
@@ -1840,7 +1842,7 @@ def export_ranking_csv():
             JOIN respuesta r ON r.id = rc.id_respuesta AND r.bloqueado = 1
             JOIN respuesta_detalle rd
                 ON rd.id_respuesta = pa.id_respuesta AND rd.id_factor = f.id
-            GROUP BY f.id, f.nombre, f.color
+            GROUP BY f.id, f.nombre, f.color, f.dimension
             ORDER BY total DESC
         """
         g.cursor.execute(ranking_query, (count_factores,))
@@ -1849,9 +1851,9 @@ def export_ranking_csv():
         ranking = cached["ranking"]
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["puesto", "factor", "total", "color_hex"])
+    writer.writerow(["puesto", "factor", "dimension", "total", "color_hex"])
     for idx, r in enumerate(ranking, start=1):
-        writer.writerow([idx, r.get("nombre"), r.get("total"), r.get("color")])
+        writer.writerow([idx, r.get("nombre"), r.get("dimension", ""), r.get("total"), r.get("color")])
     csv_data = output.getvalue()
     output.close()
     # Asegurar BOM UTF-8 para compatibilidad (p.ej., Excel)

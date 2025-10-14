@@ -85,39 +85,51 @@
         <a href="{{ url_for('panel_admin') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Volver</a>
         <div class="ms-auto small text-muted">Generado: {{ generated_at.strftime('%Y-%m-%d %H:%M UTC') }}</div>
       </div>
-      <div class="table-responsive ranking-table-wrapper">
+      <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle ranking-table">
           <thead>
             <tr>
-              <th>Puesto</th>
+              <th style="width: 80px;">Puesto</th>
               <th>Factor</th>
-              <th>Total Ponderado</th>
-              <th>% respecto máx</th>
+              <th style="width: 100px;">Dimensión</th>
+              <th style="width: 140px;">Total Ponderado</th>
+              <th style="width: 180px;">% respecto máx</th>
             </tr>
           </thead>
           <tbody>
             {% for r in ranking %}
             <tr>
-              <td>{{ loop.index }}</td>
-              <td><span class="color-badge me-1" style="background-color: {{ r.color or '#cccccc' }};"></span>{{ r.nombre }}</td>
+              <td class="text-center fw-bold">{{ loop.index }}</td>
               <td>
-                {{ '%.2f' | format(r.total or 0) }}
+                <span class="color-badge me-2" style="background-color: {{ r.color or '#cccccc' }};"></span>
+                {{ r.nombre }}
+              </td>
+              <td class="text-center">
+                {% if r.dimension %}
+                <span class="badge dimension-badge">{{ r.dimension }}</span>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <strong>{{ '%.2f' | format(r.total or 0) }}</strong>
                 {% if (r.total or 0) == 0 %}
-                <div class="text-danger">Faltan ponderaciones</div>
+                <div class="small text-danger">Faltan ponderaciones</div>
                 {% endif %}
               </td>
               <td>
                 {% set pct = ( (r.total or 0) / max_total * 100 ) if max_total else 0 %}
-                <div class="progress ranking-progress" style="height:14px;">
-                  <div class="progress-bar" role="progressbar" style="width: {{ '%.1f'|format(pct) }}%; background-color: {{ r.color or '#0d6efd' }};" aria-valuenow="{{ '%.1f'|format(pct) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress ranking-progress" style="height:16px;">
+                  <div class="progress-bar" role="progressbar" style="width: {{ '%.1f'|format(pct) }}%; background-color: {{ r.color or '#0d6efd' }};" aria-valuenow="{{ '%.1f'|format(pct) }}" aria-valuemin="0" aria-valuemax="100">
+                    <span class="small">{{ '%.1f'|format(pct) }}%</span>
+                  </div>
                 </div>
-                <div class="small text-muted mt-1">{{ '%.1f'|format(pct) }}%</div>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
-        <div class="small text-muted">Los factores con total 0 indican que faltan ponderaciones. El porcentaje se calcula sobre el total máximo observado ({{ '%.2f'|format(max_total) }}).</div>
+        <div class="small text-muted mt-2">Los factores con total 0 indican que faltan ponderaciones. El porcentaje se calcula sobre el total máximo observado ({{ '%.2f'|format(max_total) }}).</div>
       </div>
       <canvas id="rankingChart" class="mt-4"></canvas>
       {% endif %}

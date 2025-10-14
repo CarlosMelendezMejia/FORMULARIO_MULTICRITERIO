@@ -1177,10 +1177,28 @@ h2::after {
   position: sticky;
   top: 0;
   z-index: 2;
+  font-size: 0.85rem;
+  padding: 0.65rem;
+}
+
+.ranking-table td {
+  font-size: 0.875rem;
+  padding: 0.6rem;
+  vertical-align: middle;
+}
+
+.ranking-table tbody tr:hover {
+  background-color: rgba(186, 224, 255, 0.15);
+}
+
+.ranking-progress {
+  min-width: 100px;
 }
 
 .ranking-progress .progress-bar {
   transition: width .6s ease;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 @media (max-width: 576px) {
@@ -1193,8 +1211,14 @@ h2::after {
     font-size: 1.1rem;
   }
 
-  .ranking-table-wrapper {
-    max-height: 360px;
+  .ranking-table th {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .ranking-table td {
+    font-size: 0.8rem;
+    padding: 0.5rem;
   }
 }
 
