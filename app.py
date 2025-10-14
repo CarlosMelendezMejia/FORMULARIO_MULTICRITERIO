@@ -1785,6 +1785,8 @@ def vista_ranking():
 
     # Métricas adicionales
     max_total = max((r.get("total") or 0) for r in ranking) if ranking else 0
+    # Suma total de todas las ponderaciones
+    suma_total = sum((r.get("total") or 0) for r in ranking) if ranking else 0
     # Número de respuestas completas = total bloqueadas - incompletas
     completas_count = (total_respuestas - len(incompletas)) if total_respuestas else 0
     completas_pct = (completas_count / total_respuestas * 100) if total_respuestas else 0.0
@@ -1796,7 +1798,7 @@ def vista_ranking():
     if not ranking:
         estado_ranking = "sin_datos"
     app.logger.info(
-        "vista_ranking resultados ip=%s total=%s", ip, len(ranking)
+        "vista_ranking resultados ip=%s total=%s suma_total=%s", ip, len(ranking), suma_total
     )
 
     return render_template(
@@ -1809,6 +1811,7 @@ def vista_ranking():
         estado_ranking=estado_ranking,
         hay_desbloqueados=hay_desbloqueados,
         max_total=max_total,
+        suma_total=suma_total,
         completas_count=completas_count,
         completas_pct=completas_pct,
         generated_at=generated_at,
