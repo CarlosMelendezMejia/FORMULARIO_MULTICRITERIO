@@ -1756,7 +1756,8 @@ def vista_ranking():
         incompletas = [row["id_respuesta"] for row in incompletas_rows]
 
         ranking_query = """
-            SELECT f.nombre,
+            SELECT f.id,
+                   f.nombre,
                    f.color,
                    f.dimension,
                    SUM(pa.peso_admin * rd.valor_usuario) AS total
@@ -1830,7 +1831,8 @@ def export_ranking_csv():
         # Llamada interna lógica: replicamos parte menor necesaria
         count_factores = len(get_factores())
         ranking_query = """
-            SELECT f.nombre,
+            SELECT f.id,
+                   f.nombre,
                    f.color,
                    f.dimension,
                    SUM(pa.peso_admin * rd.valor_usuario) AS total
@@ -1854,9 +1856,9 @@ def export_ranking_csv():
         ranking = cached["ranking"]
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["puesto", "factor", "dimension", "total", "color_hex"])
+    writer.writerow(["puesto", "id_factor", "factor", "dimension", "total", "color_hex"])
     for idx, r in enumerate(ranking, start=1):
-        writer.writerow([idx, r.get("nombre"), r.get("dimension", ""), r.get("total"), r.get("color")])
+        writer.writerow([idx, r.get("id"), r.get("nombre"), r.get("dimension", ""), r.get("total"), r.get("color")])
     csv_data = output.getvalue()
     output.close()
     # Asegurar BOM UTF-8 para compatibilidad (p.ej., Excel)
